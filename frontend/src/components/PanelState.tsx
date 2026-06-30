@@ -27,9 +27,6 @@ export function ChartPanel({ title, status, error, isEmpty, children }: ChartPan
     <section className="border border-grid bg-canvas">
       <div className="flex min-h-12 items-center justify-between border-b border-grid px-4">
         <h2 className="text-sm font-bold uppercase text-ink">{title}</h2>
-        <span className="border border-accent px-2 py-1 text-[10px] font-bold uppercase text-accent">
-          {status}
-        </span>
       </div>
       <div className="p-4">
         {status === "loading" ? (

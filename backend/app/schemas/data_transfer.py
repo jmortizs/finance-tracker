@@ -44,7 +44,9 @@ class DashboardMetrics(BaseModel):
 
 class BalanceEvolutionPoint(BaseModel):
     month: date
-    balance: Decimal = Field(decimal_places=2)
+    balance: Decimal = Field(
+        decimal_places=2, description="Final closing balance after activity in this month."
+    )
 
 
 class CashFlowPoint(BaseModel):

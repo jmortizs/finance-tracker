@@ -15,10 +15,34 @@ interface BalanceEvolutionChartProps {
   data: NormalizedBalancePoint[];
 }
 
+interface BalanceEvolutionChartPoint extends NormalizedBalancePoint {
+  label: string;
+  balanceChange: number | null;
+}
+
+interface BalanceDotProps {
+  cx?: number;
+  cy?: number;
+  payload?: BalanceEvolutionChartPoint;
+  r?: number;
+}
+
+export function BalanceDot({ cx, cy, payload, r = 3 }: BalanceDotProps) {
+  if (typeof cx !== "number" || typeof cy !== "number") {
+    return null;
+  }
+
+  const isReduction = (payload?.balanceChange ?? 0) < 0;
+  const stroke = isReduction ? "#FF4D4D" : "#C5FF00";
+
+  return <circle cx={cx} cy={cy} r={r} stroke={stroke} fill="#000000" />;
+}
+
 export function BalanceEvolutionChart({ data }: BalanceEvolutionChartProps) {
-  const chartData = data.map((point) => ({
+  const chartData = data.map((point, index): BalanceEvolutionChartPoint => ({
     ...point,
-    label: formatMonth(point.month)
+    label: formatMonth(point.month),
+    balanceChange: index === 0 ? null : point.balance - data[index - 1].balance
   }));
 
   return (
@@ -36,7 +60,7 @@ export function BalanceEvolutionChart({ data }: BalanceEvolutionChartProps) {
           />
           <Tooltip
             contentStyle={{ background: "#000000", border: "1px solid #1C1C1C", color: "#FFFFFF" }}
-            formatter={(value) => [formatMoney(Number(value)), "Balance"]}
+            formatter={(value) => [formatMoney(Number(value)), "Closing balance"]}
             labelStyle={{ color: "#C5FF00" }}
           />
           <Line
@@ -44,8 +68,8 @@ export function BalanceEvolutionChart({ data }: BalanceEvolutionChartProps) {
             dataKey="balance"
             stroke="#C5FF00"
             strokeWidth={2}
-            dot={{ r: 3, stroke: "#C5FF00", fill: "#000000" }}
-            activeDot={{ r: 4, stroke: "#FFFFFF", fill: "#C5FF00" }}
+            dot={<BalanceDot />}
+            activeDot={<BalanceDot r={4} />}
             isAnimationActive={false}
           />
         </LineChart>

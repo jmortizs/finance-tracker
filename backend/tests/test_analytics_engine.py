@@ -40,6 +40,7 @@ class StubFinanceRepository:
         return [
             (date(2026, 4, 1), Decimal("1000.00"), Decimal("250.00")),
             (date(2026, 5, 1), Decimal("1200.00"), Decimal("300.00")),
+            (date(2026, 6, 1), Decimal("200.00"), Decimal("300.00")),
         ]
 
     def get_distribution(
@@ -83,12 +84,16 @@ def test_cash_flow_emits_expenses_as_negative_values() -> None:
     assert cash_flow[0].net_savings == Decimal("750.00")
 
 
-def test_balance_evolution_accumulates_monthly_net_savings() -> None:
+def test_balance_evolution_reports_monthly_closing_balances() -> None:
     engine = AnalyticsEngine(StubFinanceRepository())  # type: ignore[arg-type]
 
     points = engine.get_balance_evolution()
 
-    assert [point.balance for point in points] == [Decimal("750.00"), Decimal("1650.00")]
+    assert [point.balance for point in points] == [
+        Decimal("750.00"),
+        Decimal("1650.00"),
+        Decimal("1550.00"),
+    ]
 
 
 def test_distribution_calculates_percentages() -> None:

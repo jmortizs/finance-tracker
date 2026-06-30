@@ -21,6 +21,7 @@ describe("ChartPanel", () => {
 
     expect(screen.getByText("Cash Flow")).toBeInTheDocument();
     expect(screen.getByText("chart body")).toBeInTheDocument();
+    expect(screen.queryByText("success")).not.toBeInTheDocument();
   });
 
   it("renders an empty state for successful empty data", () => {
@@ -32,5 +33,25 @@ describe("ChartPanel", () => {
 
     expect(screen.getByText("Empty")).toBeInTheDocument();
     expect(screen.queryByText("chart body")).not.toBeInTheDocument();
+    expect(screen.queryByText("success")).not.toBeInTheDocument();
+  });
+
+  it("preserves visible loading and error body states", () => {
+    const { rerender } = render(
+      <ChartPanel title="Cash Flow" status="loading" error={null} isEmpty={false}>
+        <div>chart body</div>
+      </ChartPanel>
+    );
+
+    expect(screen.getByText("Loading")).toBeInTheDocument();
+
+    rerender(
+      <ChartPanel title="Cash Flow" status="error" error="Request failed" isEmpty={false}>
+        <div>chart body</div>
+      </ChartPanel>
+    );
+
+    expect(screen.getByText("Error")).toBeInTheDocument();
+    expect(screen.getByText("Request failed")).toBeInTheDocument();
   });
 });
