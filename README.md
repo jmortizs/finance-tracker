@@ -1,0 +1,57 @@
+# Personal Finance Dashboard
+
+Localized single-user finance dashboard backend for Docker-based local deployments.
+
+## Services
+
+- PostgreSQL 18.4 on `localhost:5432`
+- FastAPI backend on `localhost:8000`
+
+## Run
+
+```bash
+docker compose up --build
+```
+
+The API documentation is available at `http://localhost:8000/docs`.
+On startup the backend creates the PostgreSQL schema from `backend/specs.md` and loads
+deterministic mock data for local API testing. To start with an empty database, set
+`SEED_MOCK_DATA=false` for the backend service.
+
+To initialize or reseed manually against the configured database:
+
+```bash
+cd backend
+uv run python -m app.database
+```
+
+## API
+
+All dashboard endpoints are mounted under `/api/v1`:
+
+- `GET /api/v1/filters/options`
+- `GET /api/v1/dashboard/metrics`
+- `GET /api/v1/dashboard/charts/balance-evolution`
+- `GET /api/v1/dashboard/charts/cash-flow`
+- `GET /api/v1/dashboard/charts/distribution`
+
+Optional dashboard filters use `start_date`, `end_date`, `bank_id`, and `account_id` where supported by the endpoint.
+
+Example seeded API calls:
+
+```bash
+curl "http://localhost:8000/api/v1/filters/options"
+curl "http://localhost:8000/api/v1/dashboard/metrics?start_date=2026-06-01&end_date=2026-06-30"
+curl "http://localhost:8000/api/v1/dashboard/charts/distribution?type=EXPENSE&start_date=2026-06-01&end_date=2026-06-30"
+```
+
+## Local Backend Checks
+
+From `backend/`:
+
+```bash
+uv run ruff check app
+uv run ruff format app
+uv run mypy app
+uv run pytest
+```
