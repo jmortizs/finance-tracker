@@ -15,14 +15,39 @@
 - Update README.md with any changes to the codebase if required.
 
 ## Version Control & GitHub Workflow
-* **Branching Strategy:** Enforce a strict feature-branch workflow. Never commit directly to the `main` or `master` branch.
-* **Branch Naming:** Branch names must be lowercase, hyphen-separated, and categorized by type:
-  * `feature/<description>` (e.g., `feature/add-savings-goals`)
-  * `bugfix/<description>` (e.g., `bugfix/fix-chart-rendering`)
-  * `chore/<description>` (e.g., `chore/update-dependencies`)
-* **Commit Convention:** Strictly utilize Conventional Commits for automated parsing and changelog generation.
-  * Correct: `feat: implement positive integer validation for transactions`
-  * Correct: `fix: resolve docker-compose volume mapping`
-  * Incorrect: `updated database files`
-* **Pre-Commit Enforcement:** Before staging files or generating a commit, the agent must autonomously execute and pass all respective linting (`pnpm lint`, `flake8`/`ruff`) and testing suites in the modified boundaries.
-* **Pull Requests:** When drafting a PR, include a bulleted summary of architectural changes. The agent must verify the diff against the original task prompt to ensure no unintended files were modified.
+**AGENT INSTRUCTIONS: You must strictly execute the following step-by-step Git workflow for EVERY code change or documentation update. Failure to follow this format is a critical error.**
+
+### Step 1: Branch Creation
+* **NEVER** commit directly to the `main` or `master` branch.
+* **ACTION:** Before writing any code, create and checkout a new branch.
+* **Naming Convention:** `type/kebab-case-description`
+  * `feature/...` (e.g., `feature/add-savings-goals`)
+  * `bugfix/...` (e.g., `bugfix/fix-chart-rendering`)
+  * `chore/...` (e.g., `chore/update-dependencies`)
+
+### Step 2: Pre-Commit Validation
+* **ACTION:** Before staging files, you must autonomously run and pass the following:
+  1. Linters: `pnpm lint` (for frontend) and `flake8` or `ruff` (for backend).
+  2. Test suites relevant to the modified files.
+* Do not proceed to commit if there are failing tests or unresolved linting errors.
+
+### Step 3: Commit Messages (Strict Conventional Commits)
+* **ACTION:** Review your own `git diff` before writing the commit message.
+* You **MUST** use the Conventional Commits specification. Vague messages like "updated files" or "fixed bug" are strictly prohibited.
+* **Format:** `<type>(<optional scope>): <description>`
+* **Allowed Types:** `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`.
+* **Examples of REQUIRED formatting:**
+  * `feat(api): implement positive integer validation for transactions`
+  * `fix(docker): resolve docker-compose volume mapping for postgres`
+  * `chore(deps): bump fastapi from 0.103.0 to 0.104.0`
+
+### Step 4: Pull Request Generation (MANDATORY)
+* **ACTION:** You **MUST** create a Pull Request for your branch. Do not leave the branch without a PR.
+* If you have access to the GitHub CLI, use: `gh pr create --title "<Commit-Title>" --body "<PR-Body>"`
+* **PR Body Template:** Your PR description MUST include:
+  1. A bulleted summary of architectural/code changes.
+  2. The specific problem this solves (referencing the original prompt).
+  3. Verification that no unintended files were modified.
+
+### exceptions
+* Do not execute the Git workflow for open-spec changes and commands. (propose, apply, sync, archive).
