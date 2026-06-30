@@ -1,8 +1,7 @@
 import {
-  Bar,
   CartesianGrid,
-  ComposedChart,
   Line,
+  LineChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -25,7 +24,7 @@ export function CashFlowChart({ data }: CashFlowChartProps) {
   return (
     <div className="h-[320px] w-full">
       <ResponsiveContainer width="100%" height="100%">
-        <ComposedChart data={chartData} margin={{ top: 12, right: 18, left: 0, bottom: 0 }}>
+        <LineChart data={chartData} margin={{ top: 12, right: 18, left: 0, bottom: 0 }}>
           <CartesianGrid stroke="#1C1C1C" strokeDasharray="0" />
           <XAxis dataKey="label" stroke="#888888" tickLine={false} axisLine={false} />
           <YAxis
@@ -40,18 +39,34 @@ export function CashFlowChart({ data }: CashFlowChartProps) {
             formatter={(value, name) => [formatMoney(Number(value)), String(name)]}
             labelStyle={{ color: "#C5FF00" }}
           />
-          <Bar dataKey="income" name="Income" fill="#FFFFFF" isAnimationActive={false} />
-          <Bar dataKey="expenses" name="Expenses" fill="#888888" isAnimationActive={false} />
           <Line
             type="linear"
-            dataKey="netSavings"
-            name="Net savings"
+            dataKey="income"
+            name="Income"
             stroke="#C5FF00"
             strokeWidth={2}
             dot={false}
             isAnimationActive={false}
           />
-        </ComposedChart>
+          <Line
+            type="linear"
+            dataKey="expenses"
+            name="Expenses"
+            stroke="#FF4D4D"
+            strokeWidth={2}
+            dot={false}
+            isAnimationActive={false}
+          />
+          <Line
+            type="linear"
+            dataKey="netSavings"
+            name="Cash flow"
+            stroke="#FFFFFF"
+            strokeWidth={2}
+            dot={false}
+            isAnimationActive={false}
+          />
+        </LineChart>
       </ResponsiveContainer>
     </div>
   );

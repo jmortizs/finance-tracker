@@ -60,13 +60,13 @@ class AnalyticsEngine:
     def get_balance_evolution(
         self, *, bank_id: int | None = None, account_id: int | None = None
     ) -> list[BalanceEvolutionPoint]:
-        running_balance = Decimal("0.00")
+        closing_balance = Decimal("0.00")
         points: list[BalanceEvolutionPoint] = []
         for month, income, expenses in self.repository.get_monthly_type_totals(
             bank_id=bank_id, account_id=account_id
         ):
-            running_balance += income - expenses
-            points.append(BalanceEvolutionPoint(month=month, balance=self._money(running_balance)))
+            closing_balance += income - expenses
+            points.append(BalanceEvolutionPoint(month=month, balance=self._money(closing_balance)))
         return points
 
     def get_cash_flow(

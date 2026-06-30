@@ -4,6 +4,12 @@ import type { NormalizedDistributionPoint } from "../../types/dashboard";
 import { formatMoney, formatPercent } from "../../utils/format";
 
 const COLORS = ["#FFFFFF", "#C5FF00", "#888888", "#A0A0A0", "#1C1C1C"];
+const EXPENSE_COLORS = ["#FF4D4D", "#FFFFFF", "#888888", "#A0A0A0", "#1C1C1C"];
+
+function getSliceColor(point: NormalizedDistributionPoint, index: number): string {
+  const palette = point.type === "EXPENSE" ? EXPENSE_COLORS : COLORS;
+  return palette[index % palette.length];
+}
 
 interface DistributionChartProps {
   data: NormalizedDistributionPoint[];
@@ -27,7 +33,7 @@ export function DistributionChart({ data }: DistributionChartProps) {
               isAnimationActive={false}
             >
               {data.map((point, index) => (
-                <Cell key={`${point.type}-${point.categoryName}`} fill={COLORS[index % COLORS.length]} />
+                <Cell key={`${point.type}-${point.categoryName}`} fill={getSliceColor(point, index)} />
               ))}
             </Pie>
             <Tooltip
@@ -57,11 +63,15 @@ export function DistributionChart({ data }: DistributionChartProps) {
                 <td className="border-b border-grid px-3 py-3 text-ink">
                   <span
                     className="mr-2 inline-block h-2.5 w-2.5 align-middle"
-                    style={{ backgroundColor: COLORS[index % COLORS.length] }}
+                    style={{ backgroundColor: getSliceColor(point, index) }}
                   />
                   {point.categoryName}
                 </td>
-                <td className="border-b border-grid px-3 py-3 text-right text-muted-strong">
+                <td
+                  className={`border-b border-grid px-3 py-3 text-right ${
+                    point.type === "EXPENSE" ? "text-danger" : "text-muted-strong"
+                  }`}
+                >
                   {formatMoney(point.amount)}
                 </td>
                 <td className="border-b border-grid px-3 py-3 text-right text-accent">

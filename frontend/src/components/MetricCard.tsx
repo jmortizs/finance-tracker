@@ -6,9 +6,36 @@ interface MetricCardProps {
   metric: NormalizedMetric | null;
   mode?: "money" | "percent";
   loading: boolean;
+  tone?: "balance" | "income" | "expense" | "savings";
 }
 
-export function MetricCard({ label, metric, mode = "money", loading }: MetricCardProps) {
+function valueClassName(tone: MetricCardProps["tone"], value: number | null): string {
+  if (tone === "expense" || (value !== null && value < 0)) {
+    return "text-danger";
+  }
+
+  return "text-ink";
+}
+
+function changeClassName(tone: MetricCardProps["tone"], changePercent: number | null): string {
+  if (tone === "expense") {
+    return "text-danger";
+  }
+
+  if (changePercent === null) {
+    return "text-muted";
+  }
+
+  return changePercent < 0 ? "text-danger" : "text-accent";
+}
+
+export function MetricCard({
+  label,
+  metric,
+  mode = "money",
+  loading,
+  tone = "balance"
+}: MetricCardProps) {
   const value = metric
     ? mode === "percent"
       ? formatPercent(metric.value)
@@ -24,14 +51,17 @@ export function MetricCard({ label, metric, mode = "money", loading }: MetricCar
     <section className="min-h-[132px] border border-grid bg-canvas p-4">
       <div className="flex items-start justify-between gap-3">
         <h2 className="text-xs font-bold uppercase text-muted-strong">{label}</h2>
-        <span className="border border-accent px-2 py-1 text-[10px] font-bold uppercase text-accent">
-          {loading ? "LOAD" : "LIVE"}
-        </span>
       </div>
-      <p className="mt-5 break-words text-2xl font-bold text-ink">{loading ? "--" : value}</p>
+      <p className={`mt-5 break-words text-2xl font-bold ${valueClassName(tone, metric?.value ?? null)}`}>
+        {loading ? "--" : value}
+      </p>
       <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2 text-xs uppercase text-muted">
-        <span>Prev {loading ? "--" : previous}</span>
-        <span className="text-accent">{loading ? "--" : formatSignedChange(metric?.changePercent ?? null)}</span>
+        <span className={valueClassName(tone, metric?.previousValue ?? null)}>
+          Prev {loading ? "--" : previous}
+        </span>
+        <span className={changeClassName(tone, metric?.changePercent ?? null)}>
+          {loading ? "--" : formatSignedChange(metric?.changePercent ?? null)}
+        </span>
       </div>
     </section>
   );

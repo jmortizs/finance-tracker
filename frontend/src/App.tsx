@@ -41,27 +41,32 @@ export function App() {
             <MetricCard
               label="Balance"
               metric={dashboard.metrics.data?.balance ?? null}
+              tone="balance"
               loading={metricsLoading}
             />
             <MetricCard
               label="Income"
               metric={dashboard.metrics.data?.income ?? null}
+              tone="income"
               loading={metricsLoading}
             />
             <MetricCard
               label="Expenses"
               metric={dashboard.metrics.data?.expenses ?? null}
+              tone="expense"
               loading={metricsLoading}
             />
             <MetricCard
               label="Net savings"
               metric={dashboard.metrics.data?.netSavings ?? null}
+              tone="savings"
               loading={metricsLoading}
             />
             <MetricCard
               label="Savings %"
               metric={dashboard.metrics.data?.savingsPercentage ?? null}
               mode="percent"
+              tone="savings"
               loading={metricsLoading}
             />
           </section>
