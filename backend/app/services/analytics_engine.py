@@ -42,18 +42,46 @@ class AnalyticsEngine:
         current = self.repository.get_type_totals(
             start_date=start_date, end_date=end_date, bank_id=bank_id, account_id=account_id
         )
-        previous_start, previous_end = self._previous_period(start_date, end_date)
+        previous_start, previous_end = self._comparison_period(start_date, end_date)
         previous = self.repository.get_type_totals(
             start_date=previous_start, end_date=previous_end, bank_id=bank_id, account_id=account_id
         )
+        if end_date is None:
+            balance_value = self._balance(current)
+            previous_balance = self._balance(previous)
+            current_variation = current
+        else:
+            current_month_start, current_month_end = self._current_month_period(end_date)
+            current_variation = self.repository.get_type_totals(
+                start_date=current_month_start,
+                end_date=current_month_end,
+                bank_id=bank_id,
+                account_id=account_id,
+            )
+            balance_value = self.repository.get_closing_balance(
+                cutoff_date=end_date, bank_id=bank_id, account_id=account_id
+            )
+            previous_balance = self.repository.get_closing_balance(
+                cutoff_date=previous_end, bank_id=bank_id, account_id=account_id
+            )
 
         return DashboardMetrics(
-            balance=self._metric(self._balance(current), self._balance(previous)),
-            income=self._metric(current.income, previous.income),
-            expenses=self._metric(current.expenses, previous.expenses),
-            net_savings=self._metric(self._net_savings(current), self._net_savings(previous)),
+            balance=self._metric(balance_value, previous_balance),
+            income=self._metric(
+                current.income, previous.income, change_value=current_variation.income
+            ),
+            expenses=self._metric(
+                current.expenses, previous.expenses, change_value=current_variation.expenses
+            ),
+            net_savings=self._metric(
+                self._net_savings(current),
+                self._net_savings(previous),
+                change_value=self._net_savings(current_variation),
+            ),
             savings_percentage=self._metric(
-                self._savings_percentage(current), self._savings_percentage(previous)
+                self._savings_percentage(current),
+                self._savings_percentage(previous),
+                change_value=self._savings_percentage(current_variation),
             ),
         )
 
@@ -127,11 +155,29 @@ class AnalyticsEngine:
         previous_start = previous_end - timedelta(days=period_days - 1)
         return previous_start, previous_end
 
-    def _metric(self, value: Decimal, previous: Decimal) -> MetricWithVariation:
+    def _comparison_period(
+        self, start_date: date | None, end_date: date | None
+    ) -> tuple[date | None, date | None]:
+        if end_date is None:
+            return self._previous_period(start_date, end_date)
+        return self._previous_month_period(end_date)
+
+    def _previous_month_period(self, end_date: date) -> tuple[date, date]:
+        previous_end = end_date.replace(day=1) - timedelta(days=1)
+        previous_start = previous_end.replace(day=1)
+        return previous_start, previous_end
+
+    def _current_month_period(self, end_date: date) -> tuple[date, date]:
+        return end_date.replace(day=1), end_date
+
+    def _metric(
+        self, value: Decimal, previous: Decimal, *, change_value: Decimal | None = None
+    ) -> MetricWithVariation:
+        comparison_value = value if change_value is None else change_value
         return MetricWithVariation(
             value=self._money(value),
             previous_value=self._money(previous),
-            change_percent=self._change_percent(value, previous),
+            change_percent=self._change_percent(comparison_value, previous),
         )
 
     def _change_percent(self, value: Decimal, previous: Decimal) -> Decimal | None:

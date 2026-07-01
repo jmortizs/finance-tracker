@@ -89,6 +89,16 @@ class FinanceRepository:
             (row.month, Decimal(row.income), Decimal(row.expenses)) for row in self.db.execute(stmt)
         ]
 
+    def get_closing_balance(
+        self,
+        *,
+        cutoff_date: date,
+        bank_id: int | None = None,
+        account_id: int | None = None,
+    ) -> Decimal:
+        totals = self.get_type_totals(end_date=cutoff_date, bank_id=bank_id, account_id=account_id)
+        return totals.income - totals.expenses
+
     def get_distribution(
         self,
         *,
