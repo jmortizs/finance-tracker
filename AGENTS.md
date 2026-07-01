@@ -31,10 +31,15 @@
   2. Test suites relevant to the modified files.
 * Do not proceed to commit if there are failing tests or unresolved linting errors.
 
+### step 2.1: OpenSpec Commands
+* **ACTION:** If the changes made are related to an active OpenSpec change (openspec/changes/<change-name>) you must run the following commands:
+  1. `openspec sync` to sync the changes to the main spec.
+  2. `openspec archive` to archive the change.
+
 ### Step 3: Commit Messages (Strict Conventional Commits)
 * **ACTION:** Review your own `git diff` before writing the commit message.
 * You **MUST** use the Conventional Commits specification. Vague messages like "updated files" or "fixed bug" are strictly prohibited.
-* **Format:** `<type>(<optional scope>): <description>`
+* **Format:** `<type>(<optional scope>): <description> <list of relevant changes>`
 * **Allowed Types:** `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`.
 * **Examples of REQUIRED formatting:**
   * `feat(api): implement positive integer validation for transactions`
@@ -48,6 +53,3 @@
   1. A bulleted summary of architectural/code changes.
   2. The specific problem this solves (referencing the original prompt).
   3. Verification that no unintended files were modified.
-
-### exceptions
-* Do not execute the Git workflow for open-spec changes and commands. (propose, apply, sync, archive).
