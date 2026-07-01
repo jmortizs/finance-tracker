@@ -3,12 +3,48 @@ import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 import type { NormalizedDistributionPoint } from "../../types/dashboard";
 import { formatMoney, formatPercent } from "../../utils/format";
 
-const COLORS = ["#FFFFFF", "#C5FF00", "#888888", "#A0A0A0", "#1C1C1C"];
+const INCOME_COLORS = ["#C5FF00", "#FFFFFF", "#888888", "#A0A0A0", "#1C1C1C"];
 const EXPENSE_COLORS = ["#FF4D4D", "#FFFFFF", "#888888", "#A0A0A0", "#1C1C1C"];
 
 function getSliceColor(point: NormalizedDistributionPoint, index: number): string {
-  const palette = point.type === "EXPENSE" ? EXPENSE_COLORS : COLORS;
+  const palette = point.type === "EXPENSE" ? EXPENSE_COLORS : INCOME_COLORS;
   return palette[index % palette.length];
+}
+
+interface DistributionTooltipEntry {
+  payload?: NormalizedDistributionPoint;
+  value?: number | string;
+}
+
+interface DistributionTooltipContentProps {
+  active?: boolean;
+  payload?: DistributionTooltipEntry[];
+}
+
+export function DistributionTooltipContent({ active, payload }: DistributionTooltipContentProps) {
+  if (!active || !payload?.length) {
+    return null;
+  }
+
+  const firstPayload = payload[0];
+  const point = firstPayload.payload;
+
+  if (!point) {
+    return null;
+  }
+
+  const categoryName = point.categoryName.trim() || "Uncategorized";
+  const amount = typeof firstPayload.value === "number" || typeof firstPayload.value === "string"
+    ? Number(firstPayload.value)
+    : point.amount;
+
+  return (
+    <div className="border border-grid bg-canvas px-2 py-1.5 text-xs uppercase text-ink">
+      <div className="text-accent">{categoryName}</div>
+      <div className="text-ink">{formatMoney(amount)}</div>
+      <div className="text-muted">{formatPercent(point.percentage)}</div>
+    </div>
+  );
 }
 
 interface DistributionChartProps {
@@ -36,14 +72,7 @@ export function DistributionChart({ data }: DistributionChartProps) {
                 <Cell key={`${point.type}-${point.categoryName}`} fill={getSliceColor(point, index)} />
               ))}
             </Pie>
-            <Tooltip
-              contentStyle={{ background: "#000000", border: "1px solid #1C1C1C", color: "#FFFFFF" }}
-              formatter={(value, _name, item) => {
-                const payload = item.payload as NormalizedDistributionPoint;
-                return [`${formatMoney(Number(value))} / ${formatPercent(payload.percentage)}`, payload.categoryName];
-              }}
-              labelStyle={{ color: "#C5FF00" }}
-            />
+            <Tooltip content={<DistributionTooltipContent />} />
           </PieChart>
         </ResponsiveContainer>
       </div>

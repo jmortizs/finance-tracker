@@ -10,6 +10,7 @@ import {
 
 import type { NormalizedBalancePoint } from "../../types/dashboard";
 import { formatMoney, formatMonth } from "../../utils/format";
+import { LineSeriesDot } from "./LineSeriesDot";
 
 interface BalanceEvolutionChartProps {
   data: NormalizedBalancePoint[];
@@ -35,7 +36,7 @@ export function BalanceDot({ cx, cy, payload, r = 3 }: BalanceDotProps) {
   const isReduction = (payload?.balanceChange ?? 0) < 0;
   const stroke = isReduction ? "#FF4D4D" : "#C5FF00";
 
-  return <circle cx={cx} cy={cy} r={r} stroke={stroke} fill="#000000" />;
+  return <LineSeriesDot cx={cx} cy={cy} r={r} stroke={stroke} />;
 }
 
 export function BalanceEvolutionChart({ data }: BalanceEvolutionChartProps) {

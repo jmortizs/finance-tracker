@@ -10,6 +10,7 @@ import {
 
 import type { NormalizedCashFlowPoint } from "../../types/dashboard";
 import { formatMoney, formatMonth } from "../../utils/format";
+import { LineSeriesDot } from "./LineSeriesDot";
 
 interface CashFlowChartProps {
   data: NormalizedCashFlowPoint[];
@@ -45,7 +46,8 @@ export function CashFlowChart({ data }: CashFlowChartProps) {
             name="Income"
             stroke="#C5FF00"
             strokeWidth={2}
-            dot={false}
+            dot={<LineSeriesDot />}
+            activeDot={<LineSeriesDot r={4} />}
             isAnimationActive={false}
           />
           <Line
@@ -54,7 +56,8 @@ export function CashFlowChart({ data }: CashFlowChartProps) {
             name="Expenses"
             stroke="#FF4D4D"
             strokeWidth={2}
-            dot={false}
+            dot={<LineSeriesDot />}
+            activeDot={<LineSeriesDot r={4} />}
             isAnimationActive={false}
           />
           <Line
@@ -63,7 +66,8 @@ export function CashFlowChart({ data }: CashFlowChartProps) {
             name="Cash flow"
             stroke="#FFFFFF"
             strokeWidth={2}
-            dot={false}
+            dot={<LineSeriesDot />}
+            activeDot={<LineSeriesDot r={4} />}
             isAnimationActive={false}
           />
         </LineChart>
