@@ -18,6 +18,8 @@ export interface AccountOption {
 export interface FilterOptionsResponse {
   banks: BankOption[];
   accounts: AccountOption[];
+  min_transaction_date: string | null;
+  max_transaction_date: string | null;
 }
 
 export interface MetricWithVariation {
