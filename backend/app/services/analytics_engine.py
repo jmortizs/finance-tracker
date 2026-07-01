@@ -24,11 +24,14 @@ class AnalyticsEngine:
         self.repository = repository
 
     def get_filter_options(self) -> FilterOptionsResponse:
+        date_bounds = self.repository.get_transaction_date_bounds()
         return FilterOptionsResponse(
             banks=[BankOption.model_validate(bank) for bank in self.repository.list_banks()],
             accounts=[
                 AccountOption.model_validate(account) for account in self.repository.list_accounts()
             ],
+            min_transaction_date=date_bounds.min_transaction_date,
+            max_transaction_date=date_bounds.max_transaction_date,
         )
 
     def get_dashboard_metrics(
@@ -42,7 +45,10 @@ class AnalyticsEngine:
         current = self.repository.get_type_totals(
             start_date=start_date, end_date=end_date, bank_id=bank_id, account_id=account_id
         )
-        previous_start, previous_end = self._comparison_period(start_date, end_date)
+        if end_date is None:
+            previous_start, previous_end = self._comparison_period(start_date, end_date)
+        else:
+            previous_start, previous_end = self._previous_month_period(end_date)
         previous = self.repository.get_type_totals(
             start_date=previous_start, end_date=previous_end, bank_id=bank_id, account_id=account_id
         )
@@ -51,6 +57,7 @@ class AnalyticsEngine:
             previous_balance = self._balance(previous)
             current_variation = current
         else:
+            assert previous_end is not None
             current_month_start, current_month_end = self._current_month_period(end_date)
             current_variation = self.repository.get_type_totals(
                 start_date=current_month_start,

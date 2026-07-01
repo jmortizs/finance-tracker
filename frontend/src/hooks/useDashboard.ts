@@ -17,7 +17,13 @@ import type {
   NormalizedMetrics,
   ResourceState
 } from "../types/dashboard";
-import { constrainAccountToBank, defaultFilters, getAccountsForBank } from "../utils/filters";
+import {
+  applyDateDefaultsIfUnchanged,
+  constrainAccountToBank,
+  defaultFilters,
+  getAccountsForBank,
+  getDefaultFilters
+} from "../utils/filters";
 import {
   normalizeBalancePoints,
   normalizeCashFlowPoints,
@@ -84,7 +90,9 @@ export function useDashboard() {
     getFilterOptions(controller.signal)
       .then((data) => {
         setOptions(successResource(data));
-        setFiltersState((current) => constrainAccountToBank(current, data.accounts));
+        setFiltersState((current) =>
+          constrainAccountToBank(applyDateDefaultsIfUnchanged(current, data), data.accounts)
+        );
       })
       .catch((error: unknown) => {
         if (!controller.signal.aborted) {
@@ -153,8 +161,8 @@ export function useDashboard() {
   );
 
   const resetFilters = useCallback(() => {
-    setFiltersState(defaultFilters);
-  }, []);
+    setFiltersState(getDefaultFilters(options.data));
+  }, [options.data]);
 
   const refresh = useCallback(() => {
     setRefreshKey((current) => current + 1);

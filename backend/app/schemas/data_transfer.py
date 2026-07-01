@@ -26,6 +26,8 @@ class AccountOption(BaseModel):
 class FilterOptionsResponse(BaseModel):
     banks: list[BankOption]
     accounts: list[AccountOption]
+    min_transaction_date: date | None
+    max_transaction_date: date | None
 
 
 class MetricWithVariation(BaseModel):

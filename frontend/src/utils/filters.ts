@@ -1,4 +1,4 @@
-import type { AccountOption, DashboardFilters } from "../types/dashboard";
+import type { AccountOption, DashboardFilters, FilterOptionsResponse } from "../types/dashboard";
 
 export const defaultFilters: DashboardFilters = {
   startDate: "",
@@ -6,6 +6,29 @@ export const defaultFilters: DashboardFilters = {
   bankId: null,
   accountId: null
 };
+
+export function getDefaultFilters(options: FilterOptionsResponse | null | undefined): DashboardFilters {
+  return {
+    ...defaultFilters,
+    startDate: options?.min_transaction_date ?? "",
+    endDate: options?.max_transaction_date ?? ""
+  };
+}
+
+export function applyDateDefaultsIfUnchanged(
+  filters: DashboardFilters,
+  options: FilterOptionsResponse
+): DashboardFilters {
+  if (filters.startDate !== defaultFilters.startDate || filters.endDate !== defaultFilters.endDate) {
+    return filters;
+  }
+
+  return {
+    ...filters,
+    startDate: options.min_transaction_date ?? "",
+    endDate: options.max_transaction_date ?? ""
+  };
+}
 
 export function getAccountsForBank(
   accounts: AccountOption[],

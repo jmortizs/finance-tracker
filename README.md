@@ -41,6 +41,8 @@ All dashboard endpoints are mounted under `/api/v1`:
 - `GET /api/v1/dashboard/charts/cash-flow`
 - `GET /api/v1/dashboard/charts/distribution`
 
+`GET /api/v1/filters/options` returns banks, accounts, and nullable
+`min_transaction_date` / `max_transaction_date` bounds for dashboard date defaults.
 Optional dashboard filters use `start_date`, `end_date`, `bank_id`, and `account_id` where supported by the endpoint.
 
 Example seeded API calls:

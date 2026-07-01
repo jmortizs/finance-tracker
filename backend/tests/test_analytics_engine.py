@@ -4,19 +4,26 @@ from datetime import date
 from decimal import Decimal
 
 from app.models.domain_entities import TransactionType
-from app.repositories.finance_repo import TypeTotals
+from app.repositories.finance_repo import TransactionDateBounds, TypeTotals
 from app.services.analytics_engine import AnalyticsEngine
 
 
 class StubFinanceRepository:
     expected_bank_id = 3
     expected_account_id = 7
+    transaction_date_bounds = TransactionDateBounds(
+        min_transaction_date=date(2025, 1, 1),
+        max_transaction_date=date(2026, 6, 30),
+    )
 
     def list_banks(self) -> list[object]:
         return []
 
     def list_accounts(self) -> list[object]:
         return []
+
+    def get_transaction_date_bounds(self) -> TransactionDateBounds:
+        return self.transaction_date_bounds
 
     def get_type_totals(
         self,
@@ -105,6 +112,29 @@ def test_dashboard_metrics_uses_previous_month_baseline_for_variance() -> None:
     assert metrics.savings_percentage.value == Decimal("36.00")
     assert metrics.savings_percentage.previous_value == Decimal("75.00")
     assert metrics.savings_percentage.change_percent == Decimal("-20.00")
+
+
+def test_filter_options_include_transaction_date_bounds() -> None:
+    engine = AnalyticsEngine(StubFinanceRepository())  # type: ignore[arg-type]
+
+    options = engine.get_filter_options()
+
+    assert options.min_transaction_date == date(2025, 1, 1)
+    assert options.max_transaction_date == date(2026, 6, 30)
+
+
+def test_filter_options_allow_empty_transaction_date_bounds() -> None:
+    repository = StubFinanceRepository()
+    repository.transaction_date_bounds = TransactionDateBounds(
+        min_transaction_date=None,
+        max_transaction_date=None,
+    )
+    engine = AnalyticsEngine(repository)  # type: ignore[arg-type]
+
+    options = engine.get_filter_options()
+
+    assert options.min_transaction_date is None
+    assert options.max_transaction_date is None
 
 
 def test_cash_flow_emits_expenses_as_negative_values() -> None:

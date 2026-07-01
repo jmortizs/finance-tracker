@@ -108,7 +108,7 @@ backend/
 ## API CONTRACT DOCUMENTATION
 | HTTP VERB | URI PATTERN | QUERY PARAMETERS | JSON RESPONSE DEFINITION SUMMARY |
 | --- | --- | --- | --- |
-| GET | `/api/v1/filters/options` | None | `{ "banks": [...], "accounts": [...] }` |
+| GET | `/api/v1/filters/options` | None | `{ "banks": [...], "accounts": [...], "min_transaction_date": "YYYY-MM-DD" \| null, "max_transaction_date": "YYYY-MM-DD" \| null }` |
 | GET | `/api/v1/dashboard/metrics` | `start_date`, `end_date`, `bank_id`, `account_id` | Unified payload containing Balance, Income, Expenses, and savings percentage metrics plus MoM variations. |
 | GET | `/api/v1/dashboard/charts/balance-evolution` | `bank_id`, `account_id` | Historical timeline dataset tracking balance month-over-month. |
 | GET | `/api/v1/dashboard/charts/cash-flow` | `start_date`, `end_date`, `bank_id`, `account_id` | Paired arrays of income, negative expenses, and computed net savings across time. |

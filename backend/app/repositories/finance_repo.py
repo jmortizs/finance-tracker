@@ -15,6 +15,11 @@ class TypeTotals(NamedTuple):
     expenses: Decimal
 
 
+class TransactionDateBounds(NamedTuple):
+    min_transaction_date: date | None
+    max_transaction_date: date | None
+
+
 class FinanceRepository:
     def __init__(self, db: Session) -> None:
         self.db = db
@@ -24,6 +29,18 @@ class FinanceRepository:
 
     def list_accounts(self) -> list[Account]:
         return list(self.db.scalars(select(Account).order_by(Account.name)).all())
+
+    def get_transaction_date_bounds(self) -> TransactionDateBounds:
+        min_date, max_date = self.db.execute(
+            select(
+                func.min(Transaction.transaction_date),
+                func.max(Transaction.transaction_date),
+            )
+        ).one()
+        return TransactionDateBounds(
+            min_transaction_date=min_date,
+            max_transaction_date=max_date,
+        )
 
     def get_type_totals(
         self,
