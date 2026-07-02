@@ -2,9 +2,16 @@ from __future__ import annotations
 
 from datetime import date
 from decimal import Decimal
+from types import SimpleNamespace
 
+from sqlalchemy import create_engine, select
+from sqlalchemy.orm import Session
+
+from app.database import Base
+from app.models.domain_entities import SavingsGoal
 from app.models.domain_entities import TransactionType
-from app.repositories.finance_repo import TransactionDateBounds, TypeTotals
+from app.repositories.finance_repo import FinanceRepository, TransactionDateBounds, TypeTotals
+from app.schemas.data_transfer import SavingsGoalUpdate
 from app.services.analytics_engine import AnalyticsEngine
 
 
@@ -33,6 +40,13 @@ class StubFinanceRepository:
         bank_id: int | None = None,
         account_id: int | None = None,
     ) -> TypeTotals:
+        if (
+            start_date == date(2026, 4, 1)
+            and end_date == date(2026, 6, 30)
+            and bank_id is None
+            and account_id is None
+        ):
+            return TypeTotals(income=Decimal("2500.00"), expenses=Decimal("900.00"))
         if bank_id != self.expected_bank_id or account_id != self.expected_account_id:
             return TypeTotals(income=Decimal("0.00"), expenses=Decimal("0.00"))
         if start_date == date(2025, 1, 1) and end_date == date(2026, 6, 30):
@@ -85,6 +99,24 @@ class StubFinanceRepository:
             (1, "Groceries", transaction_type, Decimal("75.00")),
             (2, "Transport", transaction_type, Decimal("25.00")),
         ]
+
+    def get_savings_goal(self) -> SimpleNamespace:
+        return SimpleNamespace(
+            id=1,
+            target_amount=Decimal("2000.00"),
+            start_date=date(2026, 4, 1),
+            end_date=date(2026, 6, 30),
+        )
+
+    def upsert_savings_goal(
+        self, *, target_amount: Decimal, start_date: date, end_date: date
+    ) -> SimpleNamespace:
+        return SimpleNamespace(
+            id=1,
+            target_amount=target_amount,
+            start_date=start_date,
+            end_date=end_date,
+        )
 
 
 def test_dashboard_metrics_uses_previous_month_baseline_for_variance() -> None:
@@ -167,3 +199,65 @@ def test_distribution_calculates_percentages() -> None:
     assert distribution[0].category_name == "Groceries"
     assert distribution[0].percentage == Decimal("75.00")
     assert distribution[1].percentage == Decimal("25.00")
+
+
+def test_savings_goal_progress_uses_goal_dates_without_global_filters() -> None:
+    engine = AnalyticsEngine(StubFinanceRepository())  # type: ignore[arg-type]
+
+    goal = engine.get_savings_goal()
+
+    assert goal is not None
+    assert goal.target_amount == Decimal("2000.00")
+    assert goal.progress == Decimal("1600.00")
+    assert goal.completion_percentage == Decimal("80.00")
+    assert goal.end_date == date(2026, 6, 30)
+
+
+def test_savings_goal_update_recalculates_progress() -> None:
+    engine = AnalyticsEngine(StubFinanceRepository())  # type: ignore[arg-type]
+
+    goal = engine.update_savings_goal(
+        SavingsGoalUpdate(
+            target_amount=Decimal("3200.00"),
+            start_date=date(2026, 4, 1),
+            end_date=date(2026, 6, 30),
+        )
+    )
+
+    assert goal.target_amount == Decimal("3200.00")
+    assert goal.progress == Decimal("1600.00")
+    assert goal.completion_percentage == Decimal("50.00")
+
+
+def test_savings_goal_upsert_enforces_single_record_storage() -> None:
+    engine = create_engine("sqlite+pysqlite:///:memory:")
+    Base.metadata.create_all(engine)
+    with Session(engine) as session:
+        session.add_all(
+            [
+                SavingsGoal(
+                    target_amount=Decimal("1000.00"),
+                    start_date=date(2026, 1, 1),
+                    end_date=date(2026, 3, 31),
+                ),
+                SavingsGoal(
+                    target_amount=Decimal("2000.00"),
+                    start_date=date(2026, 4, 1),
+                    end_date=date(2026, 6, 30),
+                ),
+            ]
+        )
+        session.commit()
+
+        repository = FinanceRepository(session)
+        goal = repository.upsert_savings_goal(
+            target_amount=Decimal("3000.00"),
+            start_date=date(2026, 7, 1),
+            end_date=date(2026, 12, 31),
+        )
+        goals = list(session.scalars(select(SavingsGoal)).all())
+
+    assert goal.target_amount == Decimal("3000.00")
+    assert goal.start_date == date(2026, 7, 1)
+    assert goal.end_date == date(2026, 12, 31)
+    assert len(goals) == 1

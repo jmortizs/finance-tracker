@@ -94,12 +94,9 @@ class SavingsGoal(Base):
     __tablename__ = "savings_goals"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    name: Mapped[str] = mapped_column(String(100), nullable=False, unique=True)
     target_amount: Mapped[Decimal] = mapped_column(Numeric(15, 2), nullable=False)
-    current_amount: Mapped[Decimal] = mapped_column(
-        Numeric(15, 2), nullable=False, default=Decimal("0.00"), server_default="0.00"
-    )
-    target_date: Mapped[date] = mapped_column(Date, nullable=False)
+    start_date: Mapped[date] = mapped_column(Date, nullable=False)
+    end_date: Mapped[date] = mapped_column(Date, nullable=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.current_timestamp()
     )

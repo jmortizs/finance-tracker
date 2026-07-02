@@ -8,7 +8,9 @@ import type {
   NormalizedCashFlowPoint,
   NormalizedDistributionPoint,
   NormalizedMetric,
-  NormalizedMetrics
+  NormalizedMetrics,
+  NormalizedSavingsGoal,
+  SavingsGoal
 } from "../types/dashboard";
 
 export function toNumber(value: number | string | null | undefined): number {
@@ -66,4 +68,15 @@ export function normalizeDistributionPoints(
     amount: toNumber(point.amount),
     percentage: toNumber(point.percentage)
   }));
+}
+
+export function normalizeSavingsGoal(goal: SavingsGoal): NormalizedSavingsGoal {
+  return {
+    id: goal.id,
+    targetAmount: toNumber(goal.target_amount),
+    startDate: goal.start_date,
+    endDate: goal.end_date,
+    progress: toNumber(goal.progress),
+    completionPercentage: toNumber(goal.completion_percentage)
+  };
 }

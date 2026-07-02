@@ -1,7 +1,7 @@
 from datetime import date
 from decimal import Decimal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from app.models.domain_entities import TransactionType
 
@@ -66,3 +66,26 @@ class DistributionPoint(BaseModel):
     type: TransactionType
     amount: Decimal = Field(decimal_places=2)
     percentage: Decimal = Field(decimal_places=2)
+
+
+class SavingsGoalUpdate(BaseModel):
+    target_amount: Decimal = Field(ge=0, decimal_places=2)
+    start_date: date
+    end_date: date
+
+    @model_validator(mode="after")
+    def validate_date_range(self) -> "SavingsGoalUpdate":
+        if self.end_date < self.start_date:
+            raise ValueError("end_date must be on or after start_date")
+        return self
+
+
+class SavingsGoalResponse(BaseModel):
+    id: int
+    target_amount: Decimal = Field(decimal_places=2)
+    start_date: date
+    end_date: date
+    progress: Decimal = Field(decimal_places=2)
+    completion_percentage: Decimal = Field(decimal_places=2)
+
+    model_config = ConfigDict(from_attributes=True)

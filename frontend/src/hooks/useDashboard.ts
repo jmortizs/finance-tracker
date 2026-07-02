@@ -5,7 +5,9 @@ import {
   getCashFlow,
   getDashboardMetrics,
   getDistribution,
-  getFilterOptions
+  getFilterOptions,
+  getSavingsGoal,
+  updateSavingsGoal
 } from "../api/dashboard";
 import type {
   AccountOption,
@@ -15,7 +17,9 @@ import type {
   NormalizedCashFlowPoint,
   NormalizedDistributionPoint,
   NormalizedMetrics,
-  ResourceState
+  NormalizedSavingsGoal,
+  ResourceState,
+  SavingsGoalUpdate
 } from "../types/dashboard";
 import {
   applyDateDefaultsIfUnchanged,
@@ -28,7 +32,8 @@ import {
   normalizeBalancePoints,
   normalizeCashFlowPoints,
   normalizeDistributionPoints,
-  normalizeMetrics
+  normalizeMetrics,
+  normalizeSavingsGoal
 } from "../utils/normalize";
 
 function loadingResource<T>(data: T | null = null): ResourceState<T> {
@@ -82,6 +87,11 @@ export function useDashboard() {
   const [expenseDistribution, setExpenseDistribution] = useState<
     ResourceState<NormalizedDistributionPoint[]>
   >({ status: "idle", data: null, error: null });
+  const [savingsGoal, setSavingsGoal] = useState<ResourceState<NormalizedSavingsGoal | null>>({
+    status: "idle",
+    data: null,
+    error: null
+  });
 
   useEffect(() => {
     const controller = new AbortController();
@@ -146,6 +156,23 @@ export function useDashboard() {
     return () => controller.abort();
   }, [filters, refreshKey]);
 
+  useEffect(() => {
+    const controller = new AbortController();
+    setSavingsGoal((current) => loadingResource(current.data));
+
+    getSavingsGoal(controller.signal)
+      .then((goal) => {
+        setSavingsGoal(successResource(goal === null ? null : normalizeSavingsGoal(goal)));
+      })
+      .catch((error: unknown) => {
+        if (!controller.signal.aborted) {
+          setSavingsGoal(errorResource<NormalizedSavingsGoal | null>(error));
+        }
+      });
+
+    return () => controller.abort();
+  }, [refreshKey]);
+
   const availableAccounts = useMemo<AccountOption[]>(() => {
     return getAccountsForBank(options.data?.accounts ?? [], filters.bankId);
   }, [filters.bankId, options.data?.accounts]);
@@ -168,6 +195,17 @@ export function useDashboard() {
     setRefreshKey((current) => current + 1);
   }, []);
 
+  const saveSavingsGoal = useCallback(async (payload: SavingsGoalUpdate) => {
+    setSavingsGoal((current) => loadingResource(current.data));
+    try {
+      const goal = await updateSavingsGoal(payload);
+      setSavingsGoal(successResource(normalizeSavingsGoal(goal)));
+    } catch (error) {
+      setSavingsGoal((current) => errorResource<NormalizedSavingsGoal | null>(error, current.data));
+      throw error;
+    }
+  }, []);
+
   return {
     filters,
     setFilters,
@@ -179,6 +217,8 @@ export function useDashboard() {
     balanceEvolution,
     cashFlow,
     incomeDistribution,
-    expenseDistribution
+    expenseDistribution,
+    savingsGoal,
+    saveSavingsGoal
   };
 }

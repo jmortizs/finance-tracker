@@ -243,20 +243,9 @@ TRANSACTIONS = (
     ),
 )
 
-SAVINGS_GOALS = (
-    {
-        "name": "Emergency Fund",
-        "target_amount": Decimal("15000.00"),
-        "current_amount": Decimal("9250.00"),
-        "target_date": date(2026, 12, 31),
-    },
-    {
-        "name": "Vacation",
-        "target_amount": Decimal("4000.00"),
-        "current_amount": Decimal("1800.00"),
-        "target_date": date(2026, 9, 15),
-    },
-)
+SAVINGS_GOAL_TARGET_AMOUNT = Decimal("15000.00")
+SAVINGS_GOAL_START_DATE = date(2026, 3, 1)
+SAVINGS_GOAL_END_DATE = date(2026, 12, 31)
 
 
 def seed_mock_data(db: Session) -> bool:
@@ -325,10 +314,19 @@ def _upsert_categories(db: Session) -> dict[str, Category]:
 
 
 def _upsert_savings_goals(db: Session) -> None:
-    existing = {goal.name: goal for goal in db.scalars(select(SavingsGoal)).all()}
-    for goal_data in SAVINGS_GOALS:
-        if goal_data["name"] not in existing:
-            db.add(SavingsGoal(**goal_data))
+    goal = db.scalars(select(SavingsGoal).order_by(SavingsGoal.id).limit(1)).first()
+    if goal is None:
+        db.add(
+            SavingsGoal(
+                target_amount=SAVINGS_GOAL_TARGET_AMOUNT,
+                start_date=SAVINGS_GOAL_START_DATE,
+                end_date=SAVINGS_GOAL_END_DATE,
+            )
+        )
+    else:
+        goal.target_amount = SAVINGS_GOAL_TARGET_AMOUNT
+        goal.start_date = SAVINGS_GOAL_START_DATE
+        goal.end_date = SAVINGS_GOAL_END_DATE
     db.flush()
 
 

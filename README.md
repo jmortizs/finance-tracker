@@ -40,10 +40,14 @@ All dashboard endpoints are mounted under `/api/v1`:
 - `GET /api/v1/dashboard/charts/balance-evolution`
 - `GET /api/v1/dashboard/charts/cash-flow`
 - `GET /api/v1/dashboard/charts/distribution`
+- `GET /api/v1/savings-goal`
+- `PUT /api/v1/savings-goal`
 
 `GET /api/v1/filters/options` returns banks, accounts, and nullable
 `min_transaction_date` / `max_transaction_date` bounds for dashboard date defaults.
 Optional dashboard filters use `start_date`, `end_date`, `bank_id`, and `account_id` where supported by the endpoint.
+The savings goal endpoint is filter-isolated: progress is calculated from income minus expenses within the goal's own `start_date` and `end_date`.
+The main dashboard includes an inline-editable savings goal card for `target_amount`, `start_date`, and `end_date`.
 
 Example seeded API calls:
 
@@ -51,6 +55,7 @@ Example seeded API calls:
 curl "http://localhost:8000/api/v1/filters/options"
 curl "http://localhost:8000/api/v1/dashboard/metrics?start_date=2026-06-01&end_date=2026-06-30"
 curl "http://localhost:8000/api/v1/dashboard/charts/distribution?type=EXPENSE&start_date=2026-06-01&end_date=2026-06-30"
+curl "http://localhost:8000/api/v1/savings-goal"
 ```
 
 ## Local Backend Checks
