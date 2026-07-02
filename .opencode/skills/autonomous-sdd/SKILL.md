@@ -21,7 +21,9 @@ When invoked, you must strictly follow these steps sequentially. Do not stop bet
 ### 2. Spec Generation
 - Execute the command: `/opsx:new <feature-name>`
 - Execute the command: `/opsx:ff <full-user-feature-description>`
-- **Crucial:** Read the newly generated `tasks.md` and `proposal.md` in the `.openspec` folder to internalize the plan before writing any code.
+- **Crucial:** Read the newly generated `tasks.md`, `design.md` and `proposal.md` in the `.openspec` folder to internalize the plan before writing any code.
+- If there are open questions in the generated files, show them to the user and wait for their answers before continuing.
+
 
 ### 3. Implementation
 - Execute the command: `/opsx:apply`
@@ -37,9 +39,20 @@ When invoked, you must strictly follow these steps sequentially. Do not stop bet
 
 ### 6. Ship It (Git & GitHub)
 - Run: `git add .`
-- Run: `git commit -m "feat: implement <feature-name> via OpenSpec"`
+- Build a meaningful commit message that states the feature and intent (not a generic placeholder).
+- Prefer AI-authored commits without changing git config:
+  - **Format:** `<type>(<optional scope>): <description> <list of relevant changes>`
+  - **Allowed Types:** `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`.
+  - Run: `git commit --author="AI Agent <ai-agent@local>" -m "<type>(<optional scope>): <description> <list of relevant changes>" -m "<why this change was made and expected impact>"`
+  - If `--author` is rejected by repository policy/hooks, retry with a normal `git commit` and keep moving.
 - Run: `git push -u origin HEAD`
-- Use GitHub MCP to create the PR (server: `github`, tool: `create_pull_request`) with title `Feature: <feature-name>` and body `Automated PR generated via OpenCode and OpenSpec. Changes based on attached spec proposal.`
+- Use GitHub MCP to create the PR (server: `github`, tool: `create_pull_request`) with:
+  - Title: `<type>(<optional scope>): <description>`
+  - Body (concise but comprehensive):
+    - `## Summary` with 2-4 bullets describing what changed and why.
+    - `## Validation` with executed checks/commands and outcomes (for example tests, lint, type-check, build, `/opsx:verify`).
+    - `## Spec Alignment` with the implemented spec/change identifier and archive status.
+  - Never use a generic one-line PR body.
 
 ## Agent Guardrails
 - **Self-Correction:** If a terminal command fails (e.g., a compiler error during `apply`), attempt to fix the code and retry up to 2 times before halting to ask the user for help.
