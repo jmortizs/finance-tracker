@@ -7,6 +7,7 @@ import { formatMoney, formatPercent } from "../utils/format";
 interface SavingsGoalCardProps {
   goal: ResourceState<NormalizedSavingsGoal | null>;
   onSave: (payload: SavingsGoalUpdate) => Promise<void>;
+  variant?: "panel" | "metric";
 }
 
 function initialForm(goal: NormalizedSavingsGoal | null): SavingsGoalUpdate {
@@ -17,7 +18,8 @@ function initialForm(goal: NormalizedSavingsGoal | null): SavingsGoalUpdate {
   };
 }
 
-export function SavingsGoalCard({ goal, onSave }: SavingsGoalCardProps) {
+export function SavingsGoalCard({ goal, onSave, variant = "panel" }: SavingsGoalCardProps) {
+  const metricVariant = variant === "metric";
   const configured = goal.data !== null;
   const [editing, setEditing] = useState(!configured);
   const [form, setForm] = useState<SavingsGoalUpdate>(() => initialForm(goal.data));
@@ -44,15 +46,17 @@ export function SavingsGoalCard({ goal, onSave }: SavingsGoalCardProps) {
   }
 
   return (
-    <section className="border border-grid bg-canvas p-4">
+    <section className={`${metricVariant ? "min-h-[132px]" : ""} border border-grid bg-canvas p-4`}>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p className="text-xs font-bold uppercase text-muted-strong">Savings Goal</p>
-          <h2 className="mt-2 text-lg font-bold uppercase text-ink">Goal Progress</h2>
+          <h2 className={`${metricVariant ? "mt-1 text-sm" : "mt-2 text-lg"} font-bold uppercase text-ink`}>
+            Goal Progress
+          </h2>
         </div>
         {configured && !showForm ? (
           <button
-            className="border border-ink px-3 py-2 text-xs font-bold uppercase text-ink hover:border-accent hover:text-accent"
+            className={`${metricVariant ? "px-2 py-1" : "px-3 py-2"} border border-ink text-xs font-bold uppercase text-ink hover:border-accent hover:text-accent`}
             onClick={() => setEditing(true)}
             type="button"
           >
@@ -64,11 +68,16 @@ export function SavingsGoalCard({ goal, onSave }: SavingsGoalCardProps) {
       {goal.status === "error" ? <p className="mt-4 text-sm text-danger">{goal.error}</p> : null}
 
       {showForm ? (
-        <form className="mt-5 grid gap-3 md:grid-cols-[1fr_1fr_1fr_auto]" onSubmit={handleSubmit}>
+        <form
+          className={
+            metricVariant ? "mt-3 grid gap-2" : "mt-5 grid gap-3 md:grid-cols-[1fr_1fr_1fr_auto]"
+          }
+          onSubmit={handleSubmit}
+        >
           <label className="grid gap-2 text-xs font-bold uppercase text-muted">
             Target amount
             <input
-              className="border border-grid bg-canvas px-3 py-2 text-sm text-ink"
+              className={`${metricVariant ? "px-2 py-1 text-xs" : "px-3 py-2 text-sm"} border border-grid bg-canvas text-ink`}
               min="0"
               onChange={(event) => setForm((current) => ({ ...current, target_amount: event.target.value }))}
               required
@@ -80,7 +89,7 @@ export function SavingsGoalCard({ goal, onSave }: SavingsGoalCardProps) {
           <label className="grid gap-2 text-xs font-bold uppercase text-muted">
             Start date
             <input
-              className="border border-grid bg-canvas px-3 py-2 text-sm text-ink"
+              className={`${metricVariant ? "px-2 py-1 text-xs" : "px-3 py-2 text-sm"} border border-grid bg-canvas text-ink`}
               onChange={(event) => setForm((current) => ({ ...current, start_date: event.target.value }))}
               required
               type="date"
@@ -90,7 +99,7 @@ export function SavingsGoalCard({ goal, onSave }: SavingsGoalCardProps) {
           <label className="grid gap-2 text-xs font-bold uppercase text-muted">
             Deadline
             <input
-              className="border border-grid bg-canvas px-3 py-2 text-sm text-ink"
+              className={`${metricVariant ? "px-2 py-1 text-xs" : "px-3 py-2 text-sm"} border border-grid bg-canvas text-ink`}
               onChange={(event) => setForm((current) => ({ ...current, end_date: event.target.value }))}
               required
               type="date"
@@ -99,7 +108,7 @@ export function SavingsGoalCard({ goal, onSave }: SavingsGoalCardProps) {
           </label>
           <div className="flex items-end gap-2">
             <button
-              className="bg-ink px-4 py-2 text-xs font-bold uppercase text-canvas hover:bg-accent"
+              className={`${metricVariant ? "px-3 py-1" : "px-4 py-2"} bg-ink text-xs font-bold uppercase text-canvas hover:bg-accent`}
               disabled={loading}
               type="submit"
             >
@@ -107,7 +116,7 @@ export function SavingsGoalCard({ goal, onSave }: SavingsGoalCardProps) {
             </button>
             {configured ? (
               <button
-                className="border border-grid px-4 py-2 text-xs font-bold uppercase text-muted hover:border-ink hover:text-ink"
+                className={`${metricVariant ? "px-3 py-1" : "px-4 py-2"} border border-grid text-xs font-bold uppercase text-muted hover:border-ink hover:text-ink`}
                 disabled={loading}
                 onClick={() => {
                   setForm(initialForm(goal.data));
@@ -121,6 +130,31 @@ export function SavingsGoalCard({ goal, onSave }: SavingsGoalCardProps) {
           </div>
           {submitError ? <p className="text-sm text-danger md:col-span-4">{submitError}</p> : null}
         </form>
+      ) : metricVariant && currentGoal !== null ? (
+        <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 text-xs uppercase text-muted">
+          <div>
+            <p>Target</p>
+            <p className="mt-1 text-sm font-bold text-ink">
+              {loading ? "--" : formatMoney(currentGoal.targetAmount)}
+            </p>
+          </div>
+          <div>
+            <p>Completion</p>
+            <p className="mt-1 text-sm font-bold text-accent">
+              {loading ? "--" : formatPercent(currentGoal.completionPercentage)}
+            </p>
+          </div>
+          <div>
+            <p>Progress</p>
+            <p className="mt-1 text-sm font-bold text-ink">
+              {loading ? "--" : formatMoney(currentGoal.progress)}
+            </p>
+          </div>
+          <div>
+            <p>Deadline</p>
+            <p className="mt-1 text-sm font-bold text-ink">{loading ? "--" : currentGoal.endDate}</p>
+          </div>
+        </div>
       ) : currentGoal !== null ? (
         <div className="mt-5 grid gap-px bg-grid p-px sm:grid-cols-3">
           <div className="bg-canvas p-4">

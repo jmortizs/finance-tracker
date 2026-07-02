@@ -28,6 +28,20 @@ describe("SavingsGoalCard", () => {
     expect(screen.getByText("Progress $500.00")).toBeInTheDocument();
   });
 
+  it("renders required goal fields in the metric-row variant", () => {
+    render(<SavingsGoalCard goal={configuredGoal} onSave={vi.fn()} variant="metric" />);
+
+    expect(screen.getByText("Savings Goal")).toBeInTheDocument();
+    expect(screen.getByText("Target")).toBeInTheDocument();
+    expect(screen.getByText("$2,000.00")).toBeInTheDocument();
+    expect(screen.getByText("Completion")).toBeInTheDocument();
+    expect(screen.getByText("25.00%")).toBeInTheDocument();
+    expect(screen.getByText("Progress")).toBeInTheDocument();
+    expect(screen.getByText("$500.00")).toBeInTheDocument();
+    expect(screen.getByText("Deadline")).toBeInTheDocument();
+    expect(screen.getByText("2026-06-30")).toBeInTheDocument();
+  });
+
   it("saves inline edits without navigation", async () => {
     const user = userEvent.setup();
     const onSave = vi.fn().mockResolvedValue(undefined);
