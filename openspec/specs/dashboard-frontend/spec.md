@@ -40,17 +40,18 @@ The system SHALL let the user filter dashboard analytics by date range, bank, an
 - **THEN** the system limits account choices to accounts associated with the selected bank and clears any incompatible account selection
 
 ### Requirement: Dashboard metrics
-The system SHALL display balance, income, expenses, net savings, and savings percentage from the backend metrics endpoint using financial color semantics. The backend metrics endpoint SHALL provide previous value and percentage change context calculated relative to the immediately previous calendar month rather than an equally long previous date range.
+The system SHALL display balance, income, expenses, and net savings in the top metrics header row using financial color semantics. The backend metrics endpoint SHALL continue to provide previous value and percentage change context calculated relative to the immediately previous calendar month rather than an equally long previous date range. The dashboard SHALL NOT display the savings percentage KPI card in the top metrics header row.
 
 #### Scenario: Metrics render from API response
 - **WHEN** `/api/v1/dashboard/metrics` returns dashboard metrics
-- **THEN** the system displays each metric value with its previous value or percentage change context
+- **THEN** the system displays balance, income, expenses, and net savings metric values with previous value or percentage change context
 - **AND** the system does not display passive "live" or "success" labels on metric cards
+- **AND** the system does not display a `Savings %` KPI card
 
 #### Scenario: Metrics use previous month variance baseline
 - **WHEN** the user requests dashboard metrics for the date range 2025-01-01 through 2026-06-30
 - **THEN** the balance percentage change is calculated from the difference between the closing balance as of 2026-06-30 and the closing balance as of 2026-05-31
-- **AND** every metric with previous value or percentage change context uses the immediately previous calendar month as its baseline
+- **AND** every displayed metric with previous value or percentage change context uses the immediately previous calendar month as its baseline
 
 #### Scenario: Expense and reduction values render in red
 - **WHEN** the metrics response contains expense values or balance-reducing changes
@@ -115,17 +116,19 @@ The system SHALL include frontend verification commands for linting, testing, an
 - **THEN** each command completes successfully for the dashboard MVP
 
 ### Requirement: Dashboard savings goal card
-The system SHALL display a savings goal card on the main dashboard with target amount, current completion percentage, and goal deadline.
+The system SHALL display a savings goal card in the far-right slot of the main dashboard top metrics row with the same width, height, padding, and responsive grid constraints as the metric card it replaces. The card SHALL display target amount, current completion percentage, current progress amount, and goal deadline.
 
-#### Scenario: Savings goal card renders configured goal
+#### Scenario: Savings goal card renders configured goal in metric row
 - **WHEN** `/api/v1/savings-goal` returns a configured savings goal
-- **THEN** the dashboard displays the target goal amount
+- **THEN** the dashboard displays the savings goal card in the far-right top metrics row position
+- **AND** the dashboard displays the target goal amount
 - **AND** the dashboard displays the current completion percentage
+- **AND** the dashboard displays the current progress amount
 - **AND** the dashboard displays the goal deadline from `end_date`
 
 #### Scenario: Savings goal card renders setup state
 - **WHEN** `/api/v1/savings-goal` returns no configured savings goal
-- **THEN** the dashboard displays a savings goal card that allows the user to enter target amount, start date, and end date
+- **THEN** the dashboard displays a savings goal card in the top metrics row that allows the user to enter target amount, start date, and end date
 
 ### Requirement: Savings goal filter isolation
 The dashboard savings goal card SHALL ignore global dashboard date, bank, and account filters and SHALL use only the goal's own configured date range for progress.
@@ -149,3 +152,4 @@ The dashboard SHALL let users edit and save the savings goal `target_amount`, `s
 - **WHEN** the user submits edited savings goal values from the card
 - **THEN** the dashboard sends the updated values to `/api/v1/savings-goal`
 - **AND** the dashboard refreshes the card with the saved goal and recalculated progress without navigating away
+

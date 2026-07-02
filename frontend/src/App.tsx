@@ -63,17 +63,11 @@ export function App() {
               tone="savings"
               loading={metricsLoading}
             />
-            <MetricCard
-              label="Savings %"
-              metric={dashboard.metrics.data?.savingsPercentage ?? null}
-              mode="percent"
-              tone="savings"
-              loading={metricsLoading}
+            <SavingsGoalCard
+              goal={dashboard.savingsGoal}
+              onSave={dashboard.saveSavingsGoal}
+              variant="metric"
             />
-          </section>
-
-          <section className="p-4 pb-0 sm:p-6 sm:pb-0">
-            <SavingsGoalCard goal={dashboard.savingsGoal} onSave={dashboard.saveSavingsGoal} />
           </section>
 
           <section className="grid gap-4 p-4 sm:p-6 2xl:grid-cols-2">
