@@ -1,0 +1,32 @@
+{
+    "$schema": "https://opencode.ai/config.json",
+    "mcp": {
+        "github": {
+            "type": "remote",
+            "url": "https://api.githubcopilot.com/mcp/",
+            "enabled": true,
+            "oauth": false,
+            "headers": {
+                "Authorization": "Bearer {env:GITHUB_PAT_TOKEN}"
+            }
+        }
+    },
+    "permission": {
+        "bash": {
+            "*": "ask",
+            "git *": "allow",
+            "git merge *": "deny",
+            "npm *": "deny",
+            "pnpm *": "allow",
+            "pnpm install *": "ask",
+            "uv *": "allow",
+            "rm *": "ask",
+            "grep *": "allow",
+            "ls *": "allow",
+            "mkdir *": "allow",
+            "openspec *": "allow",
+            "/opsx:*": "allow",
+            "docker *": "ask"
+        }
+    }
+}
