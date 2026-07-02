@@ -5,6 +5,8 @@ import type {
   DashboardMetrics,
   DistributionPoint,
   FilterOptionsResponse,
+  SavingsGoal,
+  SavingsGoalUpdate,
   TransactionType
 } from "../types/dashboard";
 
@@ -40,6 +42,24 @@ async function fetchJson<T>(path: string, signal?: AbortSignal): Promise<T> {
     headers: {
       Accept: "application/json"
     },
+    signal
+  });
+
+  if (!response.ok) {
+    throw new Error(`Request failed (${response.status})`);
+  }
+
+  return response.json() as Promise<T>;
+}
+
+async function sendJson<T>(path: string, body: unknown, signal?: AbortSignal): Promise<T> {
+  const response = await fetch(`${API_BASE}${path}`, {
+    body: JSON.stringify(body),
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json"
+    },
+    method: "PUT",
     signal
   });
 
@@ -90,4 +110,15 @@ export function getDistribution(
     `/dashboard/charts/distribution${buildDashboardQuery(filters, { type })}`,
     signal
   );
+}
+
+export function getSavingsGoal(signal?: AbortSignal): Promise<SavingsGoal | null> {
+  return fetchJson<SavingsGoal | null>("/savings-goal", signal);
+}
+
+export function updateSavingsGoal(
+  payload: SavingsGoalUpdate,
+  signal?: AbortSignal
+): Promise<SavingsGoal> {
+  return sendJson<SavingsGoal>("/savings-goal", payload, signal);
 }

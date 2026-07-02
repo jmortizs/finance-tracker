@@ -56,6 +56,21 @@ export interface DistributionPoint {
   percentage: ApiDecimal;
 }
 
+export interface SavingsGoal {
+  id: number;
+  target_amount: ApiDecimal;
+  start_date: string;
+  end_date: string;
+  progress: ApiDecimal;
+  completion_percentage: ApiDecimal;
+}
+
+export interface SavingsGoalUpdate {
+  target_amount: ApiDecimal;
+  start_date: string;
+  end_date: string;
+}
+
 export interface DashboardFilters {
   startDate: string;
   endDate: string;
@@ -103,4 +118,13 @@ export interface NormalizedDistributionPoint {
   type: TransactionType;
   amount: number;
   percentage: number;
+}
+
+export interface NormalizedSavingsGoal {
+  id: number;
+  targetAmount: number;
+  startDate: string;
+  endDate: string;
+  progress: number;
+  completionPercentage: number;
 }

@@ -4,10 +4,10 @@ from datetime import date
 from decimal import Decimal
 from typing import NamedTuple
 
-from sqlalchemy import Select, case, func, select
+from sqlalchemy import Select, case, delete, func, select
 from sqlalchemy.orm import Session
 
-from app.models.domain_entities import Account, Bank, Category, Transaction, TransactionType
+from app.models.domain_entities import Account, Bank, Category, SavingsGoal, Transaction, TransactionType
 
 
 class TypeTotals(NamedTuple):
@@ -142,6 +142,31 @@ class FinanceRepository:
             (row.id, row.category_name, row.type, Decimal(row.amount))
             for row in self.db.execute(stmt)
         ]
+
+    def get_savings_goal(self) -> SavingsGoal | None:
+        return self.db.scalars(select(SavingsGoal).order_by(SavingsGoal.id).limit(1)).first()
+
+    def upsert_savings_goal(
+        self, *, target_amount: Decimal, start_date: date, end_date: date
+    ) -> SavingsGoal:
+        goal = self.get_savings_goal()
+        if goal is None:
+            goal = SavingsGoal(
+                target_amount=target_amount,
+                start_date=start_date,
+                end_date=end_date,
+            )
+            self.db.add(goal)
+        else:
+            goal.target_amount = target_amount
+            goal.start_date = start_date
+            goal.end_date = end_date
+
+        self.db.flush()
+        self.db.execute(delete(SavingsGoal).where(SavingsGoal.id != goal.id))
+        self.db.commit()
+        self.db.refresh(goal)
+        return goal
 
     def _filtered_transactions(
         self,

@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import date, timedelta
 from decimal import Decimal, ROUND_HALF_UP
 
-from app.models.domain_entities import TransactionType
+from app.models.domain_entities import SavingsGoal, TransactionType
 from app.repositories.finance_repo import FinanceRepository, TypeTotals
 from app.schemas.data_transfer import (
     AccountOption,
@@ -14,6 +14,8 @@ from app.schemas.data_transfer import (
     DistributionPoint,
     FilterOptionsResponse,
     MetricWithVariation,
+    SavingsGoalResponse,
+    SavingsGoalUpdate,
 )
 
 MONEY_QUANT = Decimal("0.01")
@@ -151,6 +153,36 @@ class AnalyticsEngine:
             )
             for category_id, category_name, row_type, amount in rows
         ]
+
+    def get_savings_goal(self) -> SavingsGoalResponse | None:
+        goal = self.repository.get_savings_goal()
+        if goal is None:
+            return None
+        return self._savings_goal_response(goal)
+
+    def update_savings_goal(self, payload: SavingsGoalUpdate) -> SavingsGoalResponse:
+        goal = self.repository.upsert_savings_goal(
+            target_amount=payload.target_amount,
+            start_date=payload.start_date,
+            end_date=payload.end_date,
+        )
+        return self._savings_goal_response(goal)
+
+    def _savings_goal_response(self, goal: SavingsGoal) -> SavingsGoalResponse:
+        target_amount = goal.target_amount
+        totals = self.repository.get_type_totals(
+            start_date=goal.start_date,
+            end_date=goal.end_date,
+        )
+        progress = self._net_savings(totals)
+        return SavingsGoalResponse(
+            id=goal.id,
+            target_amount=self._money(target_amount),
+            start_date=goal.start_date,
+            end_date=goal.end_date,
+            progress=self._money(progress),
+            completion_percentage=self._percentage(progress, target_amount),
+        )
 
     def _previous_period(
         self, start_date: date | None, end_date: date | None

@@ -12,6 +12,8 @@ from app.schemas.data_transfer import (
     DashboardMetrics,
     DistributionPoint,
     FilterOptionsResponse,
+    SavingsGoalResponse,
+    SavingsGoalUpdate,
 )
 from app.services.analytics_engine import AnalyticsEngine
 
@@ -80,3 +82,18 @@ def get_distribution(
         bank_id=bank_id,
         account_id=account_id,
     )
+
+
+@router.get("/savings-goal", response_model=SavingsGoalResponse | None)
+def get_savings_goal(
+    engine: AnalyticsEngine = Depends(get_analytics_engine),
+) -> SavingsGoalResponse | None:
+    return engine.get_savings_goal()
+
+
+@router.put("/savings-goal", response_model=SavingsGoalResponse)
+def update_savings_goal(
+    payload: SavingsGoalUpdate,
+    engine: AnalyticsEngine = Depends(get_analytics_engine),
+) -> SavingsGoalResponse:
+    return engine.update_savings_goal(payload)
