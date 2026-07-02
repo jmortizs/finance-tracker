@@ -22,8 +22,7 @@ When invoked, you must strictly follow these steps sequentially. Do not stop bet
 - Execute the command: `/opsx:new <feature-name>`
 - Execute the command: `/opsx:ff <full-user-feature-description>`
 - **Crucial:** Read the newly generated `tasks.md`, `design.md` and `proposal.md` in the `.openspec` folder to internalize the plan before writing any code.
-- If there are open questions in the generated files, show them to the user and wait for their answers before continuing.
-
+- Only after generating the files, check if there are open questions and if so, show them to the user and wait for their answers before continuing.
 
 ### 3. Implementation
 - Execute the command: `/opsx:apply`
@@ -43,8 +42,9 @@ When invoked, you must strictly follow these steps sequentially. Do not stop bet
 - Prefer AI-authored commits without changing git config:
   - **Format:** `<type>(<optional scope>): <description> <list of relevant changes>`
   - **Allowed Types:** `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`.
-  - Run: `git commit --author="AI Agent <ai-agent@local>" -m "<type>(<optional scope>): <description> <list of relevant changes>" -m "<why this change was made and expected impact>"`
-  - If `--author` is rejected by repository policy/hooks, retry with a normal `git commit` and keep moving.
+  - First attempt (AI as both author and committer): `GIT_COMMITTER_NAME="AI Agent" GIT_COMMITTER_EMAIL="ai-agent@local" git commit --author="AI Agent <ai-agent@local>" -m "<type>(<optional scope>): <description> <list of relevant changes>" -m "<why this change was made and expected impact>"`
+  - If custom author/committer metadata is rejected by repository policy/hooks, retry with `git commit --author="AI Agent <ai-agent@local>" ...`.
+  - If author-only is also rejected, retry with a normal `git commit` and keep moving.
 - Run: `git push -u origin HEAD`
 - Use GitHub MCP to create the PR (server: `github`, tool: `create_pull_request`) with:
   - Title: `<type>(<optional scope>): <description>`
