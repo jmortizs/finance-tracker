@@ -7,6 +7,7 @@ import { formatMoney, formatPercent } from "../utils/format";
 interface SavingsGoalCardProps {
   goal: ResourceState<NormalizedSavingsGoal | null>;
   onSave: (payload: SavingsGoalUpdate) => Promise<void>;
+  compact?: boolean;
 }
 
 function initialForm(goal: NormalizedSavingsGoal | null): SavingsGoalUpdate {
@@ -17,7 +18,7 @@ function initialForm(goal: NormalizedSavingsGoal | null): SavingsGoalUpdate {
   };
 }
 
-export function SavingsGoalCard({ goal, onSave }: SavingsGoalCardProps) {
+export function SavingsGoalCard({ goal, onSave, compact = false }: SavingsGoalCardProps) {
   const configured = goal.data !== null;
   const [editing, setEditing] = useState(!configured);
   const [form, setForm] = useState<SavingsGoalUpdate>(() => initialForm(goal.data));
@@ -31,6 +32,18 @@ export function SavingsGoalCard({ goal, onSave }: SavingsGoalCardProps) {
   const loading = goal.status === "loading";
   const showForm = editing || !configured;
   const currentGoal = goal.data;
+  const cardClassName = compact
+    ? "min-h-[132px] border border-grid bg-canvas p-4"
+    : "border border-grid bg-canvas p-4";
+  const formClassName = compact
+    ? "mt-4 grid gap-3"
+    : "mt-5 grid gap-3 md:grid-cols-[1fr_1fr_1fr_auto]";
+  const detailGridClassName = compact
+    ? "mt-4 grid gap-px bg-grid p-px"
+    : "mt-5 grid gap-px bg-grid p-px sm:grid-cols-3";
+  const detailValueClassName = compact
+    ? "mt-2 break-words text-lg font-bold"
+    : "mt-3 text-2xl font-bold";
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -44,7 +57,7 @@ export function SavingsGoalCard({ goal, onSave }: SavingsGoalCardProps) {
   }
 
   return (
-    <section className="border border-grid bg-canvas p-4">
+    <section className={cardClassName}>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p className="text-xs font-bold uppercase text-muted-strong">Savings Goal</p>
@@ -64,7 +77,7 @@ export function SavingsGoalCard({ goal, onSave }: SavingsGoalCardProps) {
       {goal.status === "error" ? <p className="mt-4 text-sm text-danger">{goal.error}</p> : null}
 
       {showForm ? (
-        <form className="mt-5 grid gap-3 md:grid-cols-[1fr_1fr_1fr_auto]" onSubmit={handleSubmit}>
+        <form className={formClassName} onSubmit={handleSubmit}>
           <label className="grid gap-2 text-xs font-bold uppercase text-muted">
             Target amount
             <input
@@ -122,16 +135,16 @@ export function SavingsGoalCard({ goal, onSave }: SavingsGoalCardProps) {
           {submitError ? <p className="text-sm text-danger md:col-span-4">{submitError}</p> : null}
         </form>
       ) : currentGoal !== null ? (
-        <div className="mt-5 grid gap-px bg-grid p-px sm:grid-cols-3">
+        <div className={detailGridClassName}>
           <div className="bg-canvas p-4">
             <p className="text-xs uppercase text-muted">Target</p>
-            <p className="mt-3 text-2xl font-bold text-ink">
+            <p className={`${detailValueClassName} text-ink`}>
               {loading ? "--" : formatMoney(currentGoal.targetAmount)}
             </p>
           </div>
           <div className="bg-canvas p-4">
             <p className="text-xs uppercase text-muted">Completion</p>
-            <p className="mt-3 text-2xl font-bold text-accent">
+            <p className={`${detailValueClassName} text-accent`}>
               {loading ? "--" : formatPercent(currentGoal.completionPercentage)}
             </p>
             <p className="mt-2 text-xs uppercase text-muted">
@@ -140,7 +153,7 @@ export function SavingsGoalCard({ goal, onSave }: SavingsGoalCardProps) {
           </div>
           <div className="bg-canvas p-4">
             <p className="text-xs uppercase text-muted">Deadline</p>
-            <p className="mt-3 text-2xl font-bold text-ink">{loading ? "--" : currentGoal.endDate}</p>
+            <p className={`${detailValueClassName} text-ink`}>{loading ? "--" : currentGoal.endDate}</p>
           </div>
         </div>
       ) : null}
