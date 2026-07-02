@@ -7,6 +7,7 @@ import type {
   FilterOptionsResponse,
   SavingsGoal,
   SavingsGoalUpdate,
+  StatementUploadResponse,
   TransactionType
 } from "../types/dashboard";
 
@@ -70,6 +71,15 @@ async function sendJson<T>(path: string, body: unknown, signal?: AbortSignal): P
   return response.json() as Promise<T>;
 }
 
+async function readErrorMessage(response: Response): Promise<string> {
+  try {
+    const payload = (await response.json()) as { detail?: string };
+    return payload.detail ?? `Request failed (${response.status})`;
+  } catch {
+    return `Request failed (${response.status})`;
+  }
+}
+
 export function getFilterOptions(signal?: AbortSignal): Promise<FilterOptionsResponse> {
   return fetchJson<FilterOptionsResponse>("/filters/options", signal);
 }
@@ -121,4 +131,24 @@ export function updateSavingsGoal(
   signal?: AbortSignal
 ): Promise<SavingsGoal> {
   return sendJson<SavingsGoal>("/savings-goal", payload, signal);
+}
+
+export async function uploadStatement(file: File, signal?: AbortSignal): Promise<StatementUploadResponse> {
+  const body = new FormData();
+  body.append("file", file);
+
+  const response = await fetch(`${API_BASE}/statements/upload`, {
+    body,
+    headers: {
+      Accept: "application/json"
+    },
+    method: "POST",
+    signal
+  });
+
+  if (!response.ok) {
+    throw new Error(await readErrorMessage(response));
+  }
+
+  return response.json() as Promise<StatementUploadResponse>;
 }

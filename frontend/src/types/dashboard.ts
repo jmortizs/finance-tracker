@@ -71,6 +71,16 @@ export interface SavingsGoalUpdate {
   end_date: string;
 }
 
+export interface StatementUploadResponse {
+  statement_id: number;
+  file_name: string;
+  file_hash: string;
+  bank_id: number;
+  account_id: number;
+  inserted_transactions: number;
+  skipped_transactions: number;
+}
+
 export interface DashboardFilters {
   startDate: string;
   endDate: string;

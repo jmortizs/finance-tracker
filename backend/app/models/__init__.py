@@ -3,6 +3,7 @@ from app.models.domain_entities import (
     Bank,
     Category,
     SavingsGoal,
+    Statement,
     Transaction,
     TransactionType,
 )
@@ -12,6 +13,7 @@ __all__ = [
     "Bank",
     "Category",
     "SavingsGoal",
+    "Statement",
     "Transaction",
     "TransactionType",
 ]

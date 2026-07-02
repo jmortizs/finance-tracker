@@ -4,7 +4,17 @@ import enum
 from datetime import date, datetime
 from decimal import Decimal
 
-from sqlalchemy import Date, DateTime, Enum, ForeignKey, Index, Numeric, String, func
+from sqlalchemy import (
+    Date,
+    DateTime,
+    Enum,
+    ForeignKey,
+    Index,
+    Numeric,
+    String,
+    UniqueConstraint,
+    func,
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
@@ -25,6 +35,9 @@ class Bank(Base):
     )
 
     accounts: Mapped[list[Account]] = relationship(
+        back_populates="bank", cascade="all, delete-orphan", passive_deletes=True
+    )
+    statements: Mapped[list[Statement]] = relationship(
         back_populates="bank", cascade="all, delete-orphan", passive_deletes=True
     )
 
@@ -70,6 +83,7 @@ class Transaction(Base):
         Index("idx_transactions_date", "transaction_date"),
         Index("idx_transactions_account", "account_id"),
         Index("idx_transactions_composite", "account_id", "transaction_date"),
+        Index("idx_transactions_bank_duplicate", "account_id", "bank_id", "transaction_date"),
     )
 
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -80,6 +94,9 @@ class Transaction(Base):
         ForeignKey("categories.id", ondelete="SET NULL"), nullable=True
     )
     amount: Mapped[Decimal] = mapped_column(Numeric(15, 2), nullable=False)
+    previous_balance: Mapped[Decimal | None] = mapped_column(Numeric(15, 2), nullable=True)
+    balance: Mapped[Decimal | None] = mapped_column(Numeric(15, 2), nullable=True)
+    bank_id: Mapped[str | None] = mapped_column(String(100), nullable=True)
     transaction_date: Mapped[date] = mapped_column(Date, nullable=False)
     description: Mapped[str | None] = mapped_column(String(255), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
@@ -88,6 +105,21 @@ class Transaction(Base):
 
     account: Mapped[Account] = relationship(back_populates="transactions")
     category: Mapped[Category | None] = relationship(back_populates="transactions")
+
+
+class Statement(Base):
+    __tablename__ = "statements"
+    __table_args__ = (UniqueConstraint("file_hash", name="uq_statements_file_hash"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    bank_id: Mapped[int] = mapped_column(ForeignKey("banks.id", ondelete="CASCADE"), nullable=False)
+    file_hash: Mapped[str] = mapped_column(String(128), nullable=False, unique=True)
+    file_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    upload_date: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.current_timestamp()
+    )
+
+    bank: Mapped[Bank] = relationship(back_populates="statements")
 
 
 class SavingsGoal(Base):

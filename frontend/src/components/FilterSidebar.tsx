@@ -1,4 +1,7 @@
-import { RefreshCcw, RotateCcw } from "lucide-react";
+import { useRef, useState } from "react";
+import { RefreshCcw, RotateCcw, Upload } from "lucide-react";
+
+import { uploadStatement } from "../api/dashboard";
 
 import type {
   AccountOption,
@@ -29,6 +32,40 @@ export function FilterSidebar({
   onRefresh
 }: FilterSidebarProps) {
   const banks = options.data?.banks ?? [];
+  const [uploadStatus, setUploadStatus] = useState<"idle" | "uploading" | "success" | "error">(
+    "idle"
+  );
+  const [uploadMessage, setUploadMessage] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  async function handleStatementUpload(file: File | undefined): Promise<void> {
+    if (file === undefined) {
+      return;
+    }
+    if (file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf")) {
+      setUploadStatus("error");
+      setUploadMessage("Select one PDF statement file.");
+      return;
+    }
+
+    setUploadStatus("uploading");
+    setUploadMessage("Parsing statement...");
+    try {
+      const result = await uploadStatement(file);
+      setUploadStatus("success");
+      setUploadMessage(
+        `Inserted ${result.inserted_transactions}; skipped ${result.skipped_transactions}.`
+      );
+      onRefresh();
+    } catch (error) {
+      setUploadStatus("error");
+      setUploadMessage(error instanceof Error ? error.message : "Statement upload failed.");
+    } finally {
+      if (fileInputRef.current !== null) {
+        fileInputRef.current.value = "";
+      }
+    }
+  }
 
   return (
     <aside className="border-b border-grid bg-canvas lg:min-h-screen lg:w-80 lg:border-b-0 lg:border-r">
@@ -95,6 +132,39 @@ export function FilterSidebar({
             Filter options failed to load: {options.error}
           </p>
         ) : null}
+
+        <div className="border border-grid p-3" aria-label="Statement PDF upload">
+          <div className="flex items-start gap-3">
+            <Upload className="mt-0.5 text-accent" size={18} aria-hidden="true" />
+            <div>
+              <p className="text-xs font-bold uppercase text-ink">Upload statement</p>
+              <p className="mt-1 text-xs leading-5 text-muted">
+                One PDF at a time. Duplicate files are rejected.
+              </p>
+            </div>
+          </div>
+          <input
+            ref={fileInputRef}
+            aria-label="Bank statement PDF"
+            className="mt-3 w-full border border-grid bg-canvas p-2 text-xs text-muted-strong file:mr-3 file:border-0 file:bg-ink file:px-3 file:py-2 file:text-xs file:font-bold file:uppercase file:text-canvas hover:file:bg-accent"
+            type="file"
+            accept="application/pdf,.pdf"
+            disabled={uploadStatus === "uploading"}
+            onChange={(event) => {
+              void handleStatementUpload(event.target.files?.[0]);
+            }}
+          />
+          {uploadMessage !== null ? (
+            <p
+              className={`mt-3 border p-2 text-xs leading-5 ${
+                uploadStatus === "error" ? "border-danger text-danger" : "border-accent text-accent"
+              }`}
+              role="status"
+            >
+              {uploadMessage}
+            </p>
+          ) : null}
+        </div>
 
         <div className="grid grid-cols-2 gap-3 pt-2">
           <button
