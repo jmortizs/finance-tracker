@@ -72,6 +72,29 @@ class StubFinanceRepository:
             return Decimal("8000.00")
         return Decimal("0.00")
 
+    def get_latest_balance_snapshot(
+        self,
+        *,
+        start_date: date | None = None,
+        end_date: date | None = None,
+        bank_id: int | None = None,
+        account_id: int | None = None,
+    ) -> Decimal:
+        if bank_id != self.expected_bank_id or account_id != self.expected_account_id:
+            return Decimal("0.00")
+        if start_date == date(2025, 1, 1) and end_date == date(2026, 6, 30):
+            return Decimal("10000.00")
+        return Decimal("0.00")
+
+    def get_monthly_balance_snapshots(
+        self, *, bank_id: int | None = None, account_id: int | None = None
+    ) -> list[tuple[date, Decimal]]:
+        return [
+            (date(2026, 4, 1), Decimal("9000.00")),
+            (date(2026, 5, 1), Decimal("9500.00")),
+            (date(2026, 6, 1), Decimal("9300.00")),
+        ]
+
     def get_monthly_type_totals(
         self,
         *,
@@ -185,9 +208,9 @@ def test_balance_evolution_reports_monthly_closing_balances() -> None:
     points = engine.get_balance_evolution()
 
     assert [point.balance for point in points] == [
-        Decimal("750.00"),
-        Decimal("1650.00"),
-        Decimal("1550.00"),
+        Decimal("9000.00"),
+        Decimal("9500.00"),
+        Decimal("9300.00"),
     ]
 
 

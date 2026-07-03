@@ -9,6 +9,8 @@ from app.models.domain_entities import TransactionType
 
 
 class ExtractedTransaction(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     transaction_date: date
     description: str | None = None
     amount: Decimal = Field(gt=0, decimal_places=2)
@@ -16,7 +18,6 @@ class ExtractedTransaction(BaseModel):
     bank_id: str | None = Field(default=None, description="Issuer transaction identifier")
     category_id: int | None = None
     category_name: str | None = None
-    previous_balance: Decimal | None = Field(default=None, decimal_places=2)
     balance: Decimal | None = Field(default=None, decimal_places=2)
     currency: str | None = Field(default=None, min_length=3, max_length=3)
 

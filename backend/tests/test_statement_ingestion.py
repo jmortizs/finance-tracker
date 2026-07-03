@@ -79,7 +79,6 @@ def make_extraction() -> StatementExtraction:
                 amount=Decimal("25.00"),
                 type=TransactionType.EXPENSE,
                 bank_id="tx-2",
-                previous_balance=Decimal("150.00"),
                 balance=Decimal("125.00"),
                 category_name="Groceries",
             ),
@@ -103,6 +102,17 @@ def test_statement_extraction_rejects_unbalanced_totals() -> None:
                     type=TransactionType.INCOME,
                 )
             ],
+        )
+
+
+def test_extracted_transaction_rejects_previous_balance() -> None:
+    with pytest.raises(ValidationError):
+        ExtractedTransaction(
+            transaction_date=date(2026, 6, 2),
+            amount=Decimal("25.00"),
+            type=TransactionType.EXPENSE,
+            previous_balance=Decimal("150.00"),
+            balance=Decimal("125.00"),
         )
 
 

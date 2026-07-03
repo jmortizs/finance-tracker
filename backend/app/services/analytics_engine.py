@@ -55,8 +55,15 @@ class AnalyticsEngine:
             start_date=previous_start, end_date=previous_end, bank_id=bank_id, account_id=account_id
         )
         if end_date is None:
-            balance_value = self._balance(current)
-            previous_balance = self._balance(previous)
+            balance_value = self.repository.get_latest_balance_snapshot(
+                start_date=start_date, end_date=end_date, bank_id=bank_id, account_id=account_id
+            )
+            baseline_balance = self.repository.get_latest_balance_snapshot(
+                start_date=previous_start,
+                end_date=previous_end,
+                bank_id=bank_id,
+                account_id=account_id,
+            )
             current_variation = current
         else:
             assert previous_end is not None
@@ -70,12 +77,12 @@ class AnalyticsEngine:
             balance_value = self.repository.get_closing_balance(
                 cutoff_date=end_date, bank_id=bank_id, account_id=account_id
             )
-            previous_balance = self.repository.get_closing_balance(
+            baseline_balance = self.repository.get_closing_balance(
                 cutoff_date=previous_end, bank_id=bank_id, account_id=account_id
             )
 
         return DashboardMetrics(
-            balance=self._metric(balance_value, previous_balance),
+            balance=self._metric(balance_value, baseline_balance),
             income=self._metric(
                 current.income, previous.income, change_value=current_variation.income
             ),
@@ -97,14 +104,12 @@ class AnalyticsEngine:
     def get_balance_evolution(
         self, *, bank_id: int | None = None, account_id: int | None = None
     ) -> list[BalanceEvolutionPoint]:
-        closing_balance = Decimal("0.00")
-        points: list[BalanceEvolutionPoint] = []
-        for month, income, expenses in self.repository.get_monthly_type_totals(
-            bank_id=bank_id, account_id=account_id
-        ):
-            closing_balance += income - expenses
-            points.append(BalanceEvolutionPoint(month=month, balance=self._money(closing_balance)))
-        return points
+        return [
+            BalanceEvolutionPoint(month=month, balance=self._money(balance))
+            for month, balance in self.repository.get_monthly_balance_snapshots(
+                bank_id=bank_id, account_id=account_id
+            )
+        ]
 
     def get_cash_flow(
         self,
@@ -231,9 +236,6 @@ class AnalyticsEngine:
         if denominator == 0:
             return Decimal("0.00")
         return ((numerator / denominator) * Decimal("100")).quantize(MONEY_QUANT, ROUND_HALF_UP)
-
-    def _balance(self, totals: TypeTotals) -> Decimal:
-        return totals.income - totals.expenses
 
     def _net_savings(self, totals: TypeTotals) -> Decimal:
         return totals.income - totals.expenses
