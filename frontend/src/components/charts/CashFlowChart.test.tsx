@@ -30,7 +30,12 @@ vi.mock("recharts", () => ({
   ),
   Tooltip: () => <div data-testid="tooltip" />,
   XAxis: () => <div data-testid="x-axis" />,
-  YAxis: () => <div data-testid="y-axis" />
+  YAxis: (props: { tickFormatter?: (value: number) => string }) => (
+    <div
+      data-testid="y-axis"
+      data-tick={props.tickFormatter ? props.tickFormatter(45251518.99) : ""}
+    />
+  )
 }));
 
 describe("CashFlowChart", () => {
@@ -69,5 +74,9 @@ describe("CashFlowChart", () => {
     expect(lines[2]).toHaveAttribute("data-type", "linear");
     expect(lines[2]).toHaveAttribute("data-dot", "true");
     expect(lines[2]).toHaveAttribute("data-active-dot", "true");
+
+    const axisTick = screen.getByTestId("y-axis").getAttribute("data-tick");
+    expect(axisTick).not.toBeNull();
+    expect(axisTick ?? "").toContain("M");
   });
 });

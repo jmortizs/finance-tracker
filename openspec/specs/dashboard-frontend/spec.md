@@ -62,11 +62,11 @@ The system SHALL display balance, income, expenses, and net savings in the top m
 - **THEN** the system displays a loading state in the metrics header row without removing the dashboard frame
 
 ### Requirement: Analytical charts
-The system SHALL render balance evolution, cash flow, and category distribution visualizations using backend chart endpoints with consistent financial color semantics, visible point-level markers for line-series charts, and legible hover details for donut segments. The balance evolution endpoint SHALL calculate monthly closing balances from the latest non-null `transactions.balance` snapshot in each month.
+The system SHALL render balance evolution, cash flow, and category distribution visualizations using backend chart endpoints with consistent financial color semantics, visible point-level markers for line-series charts, and legible hover details for donut segments. The balance evolution endpoint SHALL calculate monthly closing balances by summing each filtered account's latest known non-null `transactions.balance` as of each month end.
 
 #### Scenario: Balance evolution chart renders monthly closing balances
 - **WHEN** `/api/v1/dashboard/charts/balance-evolution` returns monthly balance points
-- **THEN** the system displays those points in a linear line chart as the latest non-null transaction `balance` for each month
+- **THEN** the system displays those points in a linear line chart as the summed month-end closing balance across filtered accounts, carrying forward each account's latest known non-null transaction `balance`
 - **AND** each point is visually identifiable as a circular datapoint marker
 - **AND** balance-reduction points or supporting indicators are displayed in red
 

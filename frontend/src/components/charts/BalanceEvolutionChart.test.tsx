@@ -16,7 +16,12 @@ vi.mock("recharts", () => ({
     return <div data-testid="tooltip-label">{label}</div>;
   },
   XAxis: () => <div data-testid="x-axis" />,
-  YAxis: () => <div data-testid="y-axis" />
+  YAxis: (props: { tickFormatter?: (value: number) => string }) => (
+    <div
+      data-testid="y-axis"
+      data-tick={props.tickFormatter ? props.tickFormatter(45251518.99) : ""}
+    />
+  )
 }));
 
 describe("BalanceEvolutionChart", () => {
@@ -41,5 +46,20 @@ describe("BalanceEvolutionChart", () => {
     );
 
     expect(container.querySelector('circle[stroke="#FF4D4D"]')).not.toBeNull();
+  });
+
+  it("uses compact labels for y-axis ticks", () => {
+    render(
+      <BalanceEvolutionChart
+        data={[
+          { month: "2026-05-01", balance: 1650 },
+          { month: "2026-06-01", balance: 1550 }
+        ]}
+      />
+    );
+
+    const axisTick = screen.getByTestId("y-axis").getAttribute("data-tick");
+    expect(axisTick).not.toBeNull();
+    expect(axisTick ?? "").toContain("M");
   });
 });

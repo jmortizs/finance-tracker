@@ -247,31 +247,15 @@ class FinanceRepository:
         bank_id: int | None = None,
         account_id: int | None = None,
     ) -> Decimal:
-        stmt = (
+        ranked = (
             self._filtered_transactions(start_date, end_date, bank_id, account_id)
             .where(Transaction.balance.is_not(None))
-            .with_only_columns(Transaction.balance)
-            .order_by(Transaction.transaction_date.desc(), Transaction.id.desc())
-            .limit(1)
-        )
-        balance = self.db.scalars(stmt).first()
-        return Decimal(balance) if balance is not None else Decimal("0.00")
-
-    def get_monthly_balance_snapshots(
-        self, *, bank_id: int | None = None, account_id: int | None = None
-    ) -> list[tuple[date, Decimal]]:
-        month = func.date_trunc("month", Transaction.transaction_date).cast(
-            Transaction.transaction_date.type
-        )
-        ranked = (
-            self._filtered_transactions(None, None, bank_id, account_id)
-            .where(Transaction.balance.is_not(None))
             .with_only_columns(
-                month.label("month"),
+                Transaction.account_id.label("account_id"),
                 Transaction.balance.label("balance"),
                 func.row_number()
                 .over(
-                    partition_by=month,
+                    partition_by=Transaction.account_id,
                     order_by=(Transaction.transaction_date.desc(), Transaction.id.desc()),
                 )
                 .label("row_number"),
@@ -279,11 +263,52 @@ class FinanceRepository:
             .subquery()
         )
         stmt = (
-            select(ranked.c.month, ranked.c.balance)
+            select(func.coalesce(func.sum(ranked.c.balance), 0))
             .where(ranked.c.row_number == 1)
-            .order_by(ranked.c.month)
         )
-        return [(row.month, Decimal(row.balance)) for row in self.db.execute(stmt)]
+        balance = self.db.scalar(stmt)
+        return Decimal(balance) if balance is not None else Decimal("0.00")
+
+    def get_monthly_balance_snapshots(
+        self, *, bank_id: int | None = None, account_id: int | None = None
+    ) -> list[tuple[date, Decimal]]:
+        stmt = (
+            self._filtered_transactions(None, None, bank_id, account_id)
+            .where(Transaction.balance.is_not(None))
+            .with_only_columns(
+                Transaction.account_id.label("account_id"),
+                Transaction.transaction_date.label("transaction_date"),
+                Transaction.balance.label("balance"),
+            )
+            .order_by(
+                Transaction.transaction_date.asc(),
+                Transaction.id.asc(),
+            )
+        )
+        rows = list(self.db.execute(stmt))
+        if not rows:
+            return []
+
+        monthly_account_balances: dict[date, dict[int, Decimal]] = {}
+        for row in rows:
+            month = row.transaction_date.replace(day=1)
+            month_balances = monthly_account_balances.setdefault(month, {})
+            month_balances[row.account_id] = Decimal(row.balance)
+
+        first_month = min(monthly_account_balances)
+        last_month = max(monthly_account_balances)
+        month_cursor = first_month
+        latest_balances: dict[int, Decimal] = {}
+        monthly_totals: list[tuple[date, Decimal]] = []
+
+        while month_cursor <= last_month:
+            for account, balance in monthly_account_balances.get(month_cursor, {}).items():
+                latest_balances[account] = balance
+
+            monthly_totals.append((month_cursor, sum(latest_balances.values(), Decimal("0.00"))))
+            month_cursor = self._next_month(month_cursor)
+
+        return monthly_totals
 
     def get_distribution(
         self,
@@ -354,3 +379,8 @@ class FinanceRepository:
         if account_id is not None:
             stmt = stmt.where(Transaction.account_id == account_id)
         return stmt
+
+    def _next_month(self, current_month: date) -> date:
+        if current_month.month == 12:
+            return date(current_month.year + 1, 1, 1)
+        return date(current_month.year, current_month.month + 1, 1)

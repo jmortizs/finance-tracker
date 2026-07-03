@@ -6,6 +6,15 @@ export function formatMoney(value: number): string {
   }).format(value);
 }
 
+export function formatMoneyCompact(value: number): string {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    notation: "compact",
+    maximumFractionDigits: 1
+  }).format(value);
+}
+
 export function formatPercent(value: number): string {
   return `${value.toFixed(2)}%`;
 }

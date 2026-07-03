@@ -9,7 +9,7 @@ import {
 } from "recharts";
 
 import type { NormalizedCashFlowPoint } from "../../types/dashboard";
-import { formatMoney, formatMonth } from "../../utils/format";
+import { formatMoney, formatMoneyCompact, formatMonth } from "../../utils/format";
 import { LineSeriesDot } from "./LineSeriesDot";
 
 interface CashFlowChartProps {
@@ -30,7 +30,7 @@ export function CashFlowChart({ data }: CashFlowChartProps) {
           <XAxis dataKey="label" stroke="#888888" tickLine={false} axisLine={false} />
           <YAxis
             stroke="#888888"
-            tickFormatter={(value) => formatMoney(Number(value))}
+            tickFormatter={(value) => formatMoneyCompact(Number(value))}
             tickLine={false}
             axisLine={false}
             width={88}

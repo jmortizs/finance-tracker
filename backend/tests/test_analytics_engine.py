@@ -8,8 +8,7 @@ from sqlalchemy import create_engine, select
 from sqlalchemy.orm import Session
 
 from app.database import Base
-from app.models.domain_entities import SavingsGoal
-from app.models.domain_entities import TransactionType
+from app.models.domain_entities import Account, Bank, SavingsGoal, Transaction, TransactionType
 from app.repositories.finance_repo import FinanceRepository, TransactionDateBounds, TypeTotals
 from app.schemas.data_transfer import SavingsGoalUpdate
 from app.services.analytics_engine import AnalyticsEngine
@@ -142,6 +141,12 @@ class StubFinanceRepository:
         )
 
 
+def make_session() -> Session:
+    engine = create_engine("sqlite+pysqlite:///:memory:")
+    Base.metadata.create_all(engine)
+    return Session(engine)
+
+
 def test_dashboard_metrics_uses_previous_month_baseline_for_variance() -> None:
     engine = AnalyticsEngine(StubFinanceRepository())  # type: ignore[arg-type]
 
@@ -253,9 +258,7 @@ def test_savings_goal_update_recalculates_progress() -> None:
 
 
 def test_savings_goal_upsert_enforces_single_record_storage() -> None:
-    engine = create_engine("sqlite+pysqlite:///:memory:")
-    Base.metadata.create_all(engine)
-    with Session(engine) as session:
+    with make_session() as session:
         session.add_all(
             [
                 SavingsGoal(
@@ -284,3 +287,157 @@ def test_savings_goal_upsert_enforces_single_record_storage() -> None:
     assert goal.start_date == date(2026, 7, 1)
     assert goal.end_date == date(2026, 12, 31)
     assert len(goals) == 1
+
+
+def test_latest_balance_snapshot_sums_latest_balance_per_account() -> None:
+    with make_session() as session:
+        primary_bank = Bank(name="Primary Bank")
+        other_bank = Bank(name="Other Bank")
+        session.add_all([primary_bank, other_bank])
+        session.flush()
+        checking = Account(
+            bank_id=primary_bank.id,
+            account_number="checking",
+            name="Checking",
+            currency="USD",
+        )
+        savings = Account(
+            bank_id=primary_bank.id,
+            account_number="savings",
+            name="Savings",
+            currency="USD",
+        )
+        external = Account(
+            bank_id=other_bank.id,
+            account_number="external",
+            name="External",
+            currency="USD",
+        )
+        session.add_all([checking, savings, external])
+        session.flush()
+        session.add_all(
+            [
+                Transaction(
+                    account_id=checking.id,
+                    amount=Decimal("100.00"),
+                    balance=Decimal("900.00"),
+                    transaction_date=date(2026, 1, 31),
+                ),
+                Transaction(
+                    account_id=checking.id,
+                    amount=Decimal("100.00"),
+                    balance=Decimal("1000.00"),
+                    transaction_date=date(2026, 2, 28),
+                ),
+                Transaction(
+                    account_id=savings.id,
+                    amount=Decimal("500.00"),
+                    balance=Decimal("4500.00"),
+                    transaction_date=date(2026, 2, 28),
+                ),
+                Transaction(
+                    account_id=external.id,
+                    amount=Decimal("700.00"),
+                    balance=Decimal("700.00"),
+                    transaction_date=date(2026, 2, 28),
+                ),
+                Transaction(
+                    account_id=checking.id,
+                    amount=Decimal("100.00"),
+                    balance=Decimal("1100.00"),
+                    transaction_date=date(2026, 3, 1),
+                ),
+            ]
+        )
+        session.commit()
+
+        repository = FinanceRepository(session)
+
+        assert repository.get_closing_balance(cutoff_date=date(2026, 2, 28)) == Decimal("6200.00")
+        assert repository.get_closing_balance(
+            cutoff_date=date(2026, 2, 28), bank_id=primary_bank.id
+        ) == Decimal("5500.00")
+        assert repository.get_closing_balance(
+            cutoff_date=date(2026, 2, 28), account_id=checking.id
+        ) == Decimal("1000.00")
+
+
+def test_monthly_balance_snapshots_carry_forward_latest_account_balances() -> None:
+    with make_session() as session:
+        primary_bank = Bank(name="Primary Bank")
+        other_bank = Bank(name="Other Bank")
+        session.add_all([primary_bank, other_bank])
+        session.flush()
+        checking = Account(
+            bank_id=primary_bank.id,
+            account_number="checking-carry-forward",
+            name="Checking",
+            currency="USD",
+        )
+        savings = Account(
+            bank_id=primary_bank.id,
+            account_number="savings-carry-forward",
+            name="Savings",
+            currency="USD",
+        )
+        external = Account(
+            bank_id=other_bank.id,
+            account_number="external-carry-forward",
+            name="External",
+            currency="USD",
+        )
+        session.add_all([checking, savings, external])
+        session.flush()
+        session.add_all(
+            [
+                Transaction(
+                    account_id=checking.id,
+                    amount=Decimal("100.00"),
+                    balance=Decimal("1000.00"),
+                    transaction_date=date(2026, 1, 31),
+                ),
+                Transaction(
+                    account_id=savings.id,
+                    amount=Decimal("500.00"),
+                    balance=Decimal("5000.00"),
+                    transaction_date=date(2026, 1, 25),
+                ),
+                Transaction(
+                    account_id=checking.id,
+                    amount=Decimal("20.00"),
+                    balance=None,
+                    transaction_date=date(2026, 2, 10),
+                ),
+                Transaction(
+                    account_id=external.id,
+                    amount=Decimal("200.00"),
+                    balance=Decimal("900.00"),
+                    transaction_date=date(2026, 2, 15),
+                ),
+                Transaction(
+                    account_id=checking.id,
+                    amount=Decimal("120.00"),
+                    balance=Decimal("1300.00"),
+                    transaction_date=date(2026, 3, 5),
+                ),
+            ]
+        )
+        session.commit()
+
+        repository = FinanceRepository(session)
+
+        assert repository.get_monthly_balance_snapshots() == [
+            (date(2026, 1, 1), Decimal("6000.00")),
+            (date(2026, 2, 1), Decimal("6900.00")),
+            (date(2026, 3, 1), Decimal("7200.00")),
+        ]
+        assert repository.get_monthly_balance_snapshots(bank_id=primary_bank.id) == [
+            (date(2026, 1, 1), Decimal("6000.00")),
+            (date(2026, 2, 1), Decimal("6000.00")),
+            (date(2026, 3, 1), Decimal("6300.00")),
+        ]
+        assert repository.get_monthly_balance_snapshots(account_id=checking.id) == [
+            (date(2026, 1, 1), Decimal("1000.00")),
+            (date(2026, 2, 1), Decimal("1000.00")),
+            (date(2026, 3, 1), Decimal("1300.00")),
+        ]
