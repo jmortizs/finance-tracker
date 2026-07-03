@@ -4,13 +4,14 @@
 TBD - created by archiving change ai-statement-ingestion. Update Purpose after archive.
 ## Requirements
 ### Requirement: Statement persistence schema
-The system SHALL persist uploaded bank statement metadata in a `statements` table with an `id`, `bank_id` foreign key to `banks`, unique `file_hash`, original `file_name`, and `upload_date`. The system SHALL extend transactions with nullable `previous_balance`, nullable `balance`, and nullable issuer `bank_id` string fields.
+The system SHALL persist uploaded bank statement metadata in a `statements` table with an `id`, `bank_id` foreign key to `banks`, unique `file_hash`, original `file_name`, and `upload_date`. The system SHALL extend transactions with nullable `balance` and nullable issuer `bank_id` string fields, and SHALL NOT include a `previous_balance` transaction field.
 
 #### Scenario: Schema supports statement tracking
 - **WHEN** the database schema is initialized or synchronized
 - **THEN** the `statements` table exists with a unique `file_hash`
 - **AND** `statements.bank_id` references `banks.id`
-- **AND** transactions include `previous_balance`, `balance`, and `bank_id` columns
+- **AND** transactions include `balance` and `bank_id` columns
+- **AND** transactions do not include a `previous_balance` column
 
 ### Requirement: PDF statement upload endpoint
 The system SHALL expose a `/api/v1/statements/upload` POST endpoint that accepts exactly one PDF file upload and rejects non-PDF inputs.
@@ -33,12 +34,13 @@ The system SHALL compute a cryptographic hash of each uploaded PDF and reject pr
 - **AND** the system does not insert transactions
 
 ### Requirement: Pydantic-AI extraction agent
-The system SHALL use Pydantic-AI with an OpenAI model configured from environment settings to extract bank, account, and transaction data into a strict Pydantic output schema.
+The system SHALL use Pydantic-AI with an OpenAI model configured from environment settings to extract bank, account, and transaction data into a strict Pydantic output schema. The transaction extraction schema SHALL include current transaction `balance` context and SHALL NOT include `previous_balance`.
 
 #### Scenario: Agent uses configured OpenAI model
 - **WHEN** statement ingestion reaches the extraction step
 - **THEN** the backend invokes a Pydantic-AI agent using the configured OpenAI model name
 - **AND** the agent output is validated against the statement extraction schema before persistence
+- **AND** extracted transactions are validated without a `previous_balance` field
 
 ### Requirement: AI database lookup tools
 The statement extraction agent SHALL expose tools that can query existing categories, banks, and accounts so extracted transactions can be classified and mapped to system entities.
@@ -79,7 +81,7 @@ The system SHALL avoid inserting duplicate transactions when an existing row has
 
 #### Scenario: New transaction is inserted
 - **WHEN** an extracted transaction does not match an existing composite duplicate
-- **THEN** the system inserts the transaction with amount, type-derived category, balance context, issuer `bank_id`, date, and description
+- **THEN** the system inserts the transaction with amount, type-derived category, `balance` context, issuer `bank_id`, date, and description
 
 ### Requirement: AI ingestion configuration documentation
 The system SHALL document the OpenAI API key and statement extraction model environment variables in `.env.example` and README documentation.

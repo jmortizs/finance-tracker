@@ -136,7 +136,6 @@ class FinanceRepository:
         amount: Decimal,
         transaction_date: date,
         description: str | None,
-        previous_balance: Decimal | None,
         balance: Decimal | None,
         bank_id: str | None,
     ) -> Transaction:
@@ -146,7 +145,6 @@ class FinanceRepository:
             amount=amount,
             transaction_date=transaction_date,
             description=description,
-            previous_balance=previous_balance,
             balance=balance,
             bank_id=bank_id,
         )
@@ -237,8 +235,55 @@ class FinanceRepository:
         bank_id: int | None = None,
         account_id: int | None = None,
     ) -> Decimal:
-        totals = self.get_type_totals(end_date=cutoff_date, bank_id=bank_id, account_id=account_id)
-        return totals.income - totals.expenses
+        return self.get_latest_balance_snapshot(
+            end_date=cutoff_date, bank_id=bank_id, account_id=account_id
+        )
+
+    def get_latest_balance_snapshot(
+        self,
+        *,
+        start_date: date | None = None,
+        end_date: date | None = None,
+        bank_id: int | None = None,
+        account_id: int | None = None,
+    ) -> Decimal:
+        stmt = (
+            self._filtered_transactions(start_date, end_date, bank_id, account_id)
+            .where(Transaction.balance.is_not(None))
+            .with_only_columns(Transaction.balance)
+            .order_by(Transaction.transaction_date.desc(), Transaction.id.desc())
+            .limit(1)
+        )
+        balance = self.db.scalars(stmt).first()
+        return Decimal(balance) if balance is not None else Decimal("0.00")
+
+    def get_monthly_balance_snapshots(
+        self, *, bank_id: int | None = None, account_id: int | None = None
+    ) -> list[tuple[date, Decimal]]:
+        month = func.date_trunc("month", Transaction.transaction_date).cast(
+            Transaction.transaction_date.type
+        )
+        ranked = (
+            self._filtered_transactions(None, None, bank_id, account_id)
+            .where(Transaction.balance.is_not(None))
+            .with_only_columns(
+                month.label("month"),
+                Transaction.balance.label("balance"),
+                func.row_number()
+                .over(
+                    partition_by=month,
+                    order_by=(Transaction.transaction_date.desc(), Transaction.id.desc()),
+                )
+                .label("row_number"),
+            )
+            .subquery()
+        )
+        stmt = (
+            select(ranked.c.month, ranked.c.balance)
+            .where(ranked.c.row_number == 1)
+            .order_by(ranked.c.month)
+        )
+        return [(row.month, Decimal(row.balance)) for row in self.db.execute(stmt)]
 
     def get_distribution(
         self,

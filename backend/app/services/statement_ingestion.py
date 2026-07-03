@@ -86,7 +86,6 @@ class StatementIngestionService:
                     amount=transaction.amount,
                     transaction_date=transaction.transaction_date,
                     description=transaction.description,
-                    previous_balance=transaction.previous_balance,
                     balance=transaction.balance,
                     bank_id=transaction.bank_id,
                 )

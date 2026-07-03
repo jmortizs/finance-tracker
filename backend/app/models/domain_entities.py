@@ -94,7 +94,6 @@ class Transaction(Base):
         ForeignKey("categories.id", ondelete="SET NULL"), nullable=True
     )
     amount: Mapped[Decimal] = mapped_column(Numeric(15, 2), nullable=False)
-    previous_balance: Mapped[Decimal | None] = mapped_column(Numeric(15, 2), nullable=True)
     balance: Mapped[Decimal | None] = mapped_column(Numeric(15, 2), nullable=True)
     bank_id: Mapped[str | None] = mapped_column(String(100), nullable=True)
     transaction_date: Mapped[date] = mapped_column(Date, nullable=False)

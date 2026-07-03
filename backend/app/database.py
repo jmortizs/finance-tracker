@@ -41,8 +41,8 @@ def sync_statement_schema() -> None:
 
     transaction_columns = {column["name"] for column in inspector.get_columns("transactions")}
     statements = []
-    if "previous_balance" not in transaction_columns:
-        statements.append("ALTER TABLE transactions ADD COLUMN previous_balance NUMERIC(15, 2)")
+    if "previous_balance" in transaction_columns:
+        statements.append("ALTER TABLE transactions DROP COLUMN previous_balance")
     if "balance" not in transaction_columns:
         statements.append("ALTER TABLE transactions ADD COLUMN balance NUMERIC(15, 2)")
     if "bank_id" not in transaction_columns:
