@@ -42,12 +42,21 @@ All dashboard endpoints are mounted under `/api/v1`:
 - `GET /api/v1/dashboard/charts/distribution`
 - `GET /api/v1/savings-goal`
 - `PUT /api/v1/savings-goal`
+- `POST /api/v1/statements/upload`
 
 `GET /api/v1/filters/options` returns banks, accounts, and nullable
 `min_transaction_date` / `max_transaction_date` bounds for dashboard date defaults.
 Optional dashboard filters use `start_date`, `end_date`, `bank_id`, and `account_id` where supported by the endpoint.
 The savings goal endpoint is filter-isolated: progress is calculated from income minus expenses within the goal's own `start_date` and `end_date`.
 The main dashboard includes an inline-editable savings goal card for `target_amount`, `start_date`, and `end_date`.
+Bank statement ingestion accepts one PDF at `/api/v1/statements/upload`, rejects duplicate files by SHA-256 hash, extracts transactions with Pydantic-AI/OpenAI, validates statement arithmetic, defaults currency to `COP` unless specified, and skips duplicate issuer transactions by `account_id`, `bank_id`, and `transaction_date`.
+
+## AI Statement Ingestion Configuration
+
+Copy `.env.example` to `.env` for local overrides. Statement ingestion requires:
+
+- `OPENAI_API_KEY`: OpenAI API key used by Pydantic-AI.
+- `STATEMENT_AI_MODEL`: OpenAI model for statement extraction, defaulting to `gpt-5.4-mini`.
 
 Example seeded API calls:
 

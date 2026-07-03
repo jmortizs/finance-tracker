@@ -7,7 +7,15 @@ from typing import NamedTuple
 from sqlalchemy import Select, case, delete, func, select
 from sqlalchemy.orm import Session
 
-from app.models.domain_entities import Account, Bank, Category, SavingsGoal, Transaction, TransactionType
+from app.models.domain_entities import (
+    Account,
+    Bank,
+    Category,
+    SavingsGoal,
+    Statement,
+    Transaction,
+    TransactionType,
+)
 
 
 class TypeTotals(NamedTuple):
@@ -29,6 +37,122 @@ class FinanceRepository:
 
     def list_accounts(self) -> list[Account]:
         return list(self.db.scalars(select(Account).order_by(Account.name)).all())
+
+    def list_categories(self) -> list[Category]:
+        return list(self.db.scalars(select(Category).order_by(Category.name)).all())
+
+    def get_bank(self, bank_id: int) -> Bank | None:
+        return self.db.get(Bank, bank_id)
+
+    def get_bank_by_name(self, name: str) -> Bank | None:
+        return self.db.scalars(select(Bank).where(func.lower(Bank.name) == name.lower())).first()
+
+    def get_or_create_bank(self, *, name: str, bank_id: int | None = None) -> Bank:
+        bank = self.get_bank(bank_id) if bank_id is not None else None
+        if bank is None:
+            bank = self.get_bank_by_name(name)
+        if bank is None:
+            bank = Bank(name=name)
+            self.db.add(bank)
+            self.db.flush()
+        return bank
+
+    def get_account(self, account_id: int) -> Account | None:
+        return self.db.get(Account, account_id)
+
+    def get_account_by_number(self, account_number: str) -> Account | None:
+        return self.db.scalars(
+            select(Account).where(Account.account_number == account_number)
+        ).first()
+
+    def get_or_create_account(
+        self,
+        *,
+        bank: Bank,
+        account_number: str,
+        name: str,
+        currency: str,
+        account_id: int | None = None,
+    ) -> Account:
+        account = self.get_account(account_id) if account_id is not None else None
+        if account is None:
+            account = self.get_account_by_number(account_number)
+        if account is None:
+            account = Account(
+                bank_id=bank.id,
+                account_number=account_number,
+                name=name,
+                currency=currency,
+            )
+            self.db.add(account)
+            self.db.flush()
+        return account
+
+    def get_statement_by_hash(self, file_hash: str) -> Statement | None:
+        return self.db.scalars(select(Statement).where(Statement.file_hash == file_hash)).first()
+
+    def create_statement(self, *, bank_id: int, file_hash: str, file_name: str) -> Statement:
+        statement = Statement(bank_id=bank_id, file_hash=file_hash, file_name=file_name)
+        self.db.add(statement)
+        self.db.flush()
+        return statement
+
+    def get_category(self, category_id: int) -> Category | None:
+        return self.db.get(Category, category_id)
+
+    def get_category_by_name_and_type(
+        self, *, name: str, transaction_type: TransactionType
+    ) -> Category | None:
+        return self.db.scalars(
+            select(Category).where(
+                func.lower(Category.name) == name.lower(),
+                Category.type == transaction_type,
+            )
+        ).first()
+
+    def transaction_duplicate_exists(
+        self, *, account_id: int, bank_id: str | None, transaction_date: date
+    ) -> bool:
+        if bank_id is None:
+            return False
+        return (
+            self.db.scalars(
+                select(Transaction.id)
+                .where(
+                    Transaction.account_id == account_id,
+                    Transaction.bank_id == bank_id,
+                    Transaction.transaction_date == transaction_date,
+                )
+                .limit(1)
+            ).first()
+            is not None
+        )
+
+    def add_transaction(
+        self,
+        *,
+        account_id: int,
+        category_id: int | None,
+        amount: Decimal,
+        transaction_date: date,
+        description: str | None,
+        previous_balance: Decimal | None,
+        balance: Decimal | None,
+        bank_id: str | None,
+    ) -> Transaction:
+        transaction = Transaction(
+            account_id=account_id,
+            category_id=category_id,
+            amount=amount,
+            transaction_date=transaction_date,
+            description=description,
+            previous_balance=previous_balance,
+            balance=balance,
+            bank_id=bank_id,
+        )
+        self.db.add(transaction)
+        self.db.flush()
+        return transaction
 
     def get_transaction_date_bounds(self) -> TransactionDateBounds:
         min_date, max_date = self.db.execute(
