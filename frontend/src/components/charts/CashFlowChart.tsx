@@ -38,13 +38,13 @@ export function CashFlowChart({ data }: CashFlowChartProps) {
           <Tooltip
             contentStyle={{ background: "#000000", border: "1px solid #1C1C1C", color: "#FFFFFF" }}
             formatter={(value, name) => [formatMoney(Number(value)), String(name)]}
-            labelStyle={{ color: "#C5FF00" }}
+            labelStyle={{ color: "#87E614" }}
           />
           <Line
             type="linear"
             dataKey="income"
             name="Income"
-            stroke="#C5FF00"
+            stroke="#87E614"
             strokeWidth={2}
             dot={<LineSeriesDot />}
             activeDot={<LineSeriesDot r={4} />}

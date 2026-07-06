@@ -58,7 +58,7 @@ describe("CashFlowChart", () => {
     expect(lines).toHaveLength(3);
     expect(lines[0]).toHaveAttribute("data-key", "income");
     expect(lines[0]).toHaveAttribute("data-name", "Income");
-    expect(lines[0]).toHaveAttribute("data-stroke", "#C5FF00");
+    expect(lines[0]).toHaveAttribute("data-stroke", "#87E614");
     expect(lines[0]).toHaveAttribute("data-type", "linear");
     expect(lines[0]).toHaveAttribute("data-dot", "true");
     expect(lines[0]).toHaveAttribute("data-active-dot", "true");

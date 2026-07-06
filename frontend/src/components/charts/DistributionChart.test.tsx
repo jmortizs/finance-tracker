@@ -37,7 +37,7 @@ describe("DistributionChart", () => {
       />
     );
 
-    expect(screen.getAllByTestId("cell")[0]).toHaveAttribute("data-fill", "#C5FF00");
+    expect(screen.getAllByTestId("cell")[0]).toHaveAttribute("data-fill", "#87E614");
   });
 
   it("renders expense distribution amounts and leading slice in red", () => {

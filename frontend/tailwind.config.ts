@@ -10,7 +10,7 @@ export default {
         muted: "#888888",
         "muted-strong": "#A0A0A0",
         grid: "#1C1C1C",
-        accent: "#C5FF00",
+        accent: "#87E614",
         danger: "#FF4D4D"
       },
       fontFamily: {

@@ -3,7 +3,7 @@ import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 import type { NormalizedDistributionPoint } from "../../types/dashboard";
 import { formatMoney, formatPercent } from "../../utils/format";
 
-const INCOME_COLORS = ["#C5FF00", "#FFFFFF", "#888888", "#A0A0A0", "#1C1C1C"];
+const INCOME_COLORS = ["#87E614", "#FFFFFF", "#888888", "#A0A0A0", "#1C1C1C"];
 const EXPENSE_COLORS = ["#FF4D4D", "#FFFFFF", "#888888", "#A0A0A0", "#1C1C1C"];
 
 function getSliceColor(point: NormalizedDistributionPoint, index: number): string {

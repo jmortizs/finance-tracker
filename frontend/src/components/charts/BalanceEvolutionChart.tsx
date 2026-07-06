@@ -34,7 +34,7 @@ export function BalanceDot({ cx, cy, payload, r = 3 }: BalanceDotProps) {
   }
 
   const isReduction = (payload?.balanceChange ?? 0) < 0;
-  const stroke = isReduction ? "#FF4D4D" : "#C5FF00";
+  const stroke = isReduction ? "#FF4D4D" : "#87E614";
 
   return <LineSeriesDot cx={cx} cy={cy} r={r} stroke={stroke} />;
 }
@@ -62,12 +62,12 @@ export function BalanceEvolutionChart({ data }: BalanceEvolutionChartProps) {
           <Tooltip
             contentStyle={{ background: "#000000", border: "1px solid #1C1C1C", color: "#FFFFFF" }}
             formatter={(value) => [formatMoney(Number(value)), "Closing balance"]}
-            labelStyle={{ color: "#C5FF00" }}
+            labelStyle={{ color: "#87E614" }}
           />
           <Line
             type="linear"
             dataKey="balance"
-            stroke="#C5FF00"
+            stroke="#87E614"
             strokeWidth={2}
             dot={<BalanceDot />}
             activeDot={<BalanceDot r={4} />}
