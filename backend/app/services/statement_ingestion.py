@@ -32,6 +32,14 @@ class StatementConfigurationError(StatementIngestionError):
     status_code = 503
 
 
+class CorruptedPdfError(StatementIngestionError):
+    status_code = 400
+
+
+class ScannedPdfError(StatementIngestionError):
+    status_code = 422
+
+
 @dataclass
 class StatementIngestionService:
     repository: FinanceRepository
@@ -113,15 +121,12 @@ class StatementIngestionService:
             raise StatementConfigurationError("OPENAI_API_KEY is required for statement ingestion")
 
         text = self._extract_pdf_text(content)
-        if not text.strip():
-            raise StatementIngestionError("No readable text was found in the uploaded PDF")
 
         os.environ.setdefault("OPENAI_API_KEY", self.settings.openai_api_key)
         agent = build_statement_agent(self.settings.statement_ai_model)
         try:
             result = await agent.run(
-                "Extract this bank statement and return the validated structured output:\n\n"
-                + text,
+                self._build_extraction_prompt(text),
                 deps=StatementAgentDependencies(repository=self.repository),
             )
         except ValidationError as exc:
@@ -129,19 +134,58 @@ class StatementIngestionService:
 
         return result.output
 
+    def _build_extraction_prompt(self, text: str) -> str:
+        return (
+            "Parse the bank statement below. The text was deterministically extracted from "
+            "the PDF with its visual layout preserved: spacing and column alignment mirror "
+            "the original document. Map each tabular row to a transaction using the aligned "
+            "columns. Use only values present in the text and never invent data that is not "
+            "in the payload. Return the validated structured output.\n\n"
+            "<statement_text>\n"
+            f"{text}\n"
+            "</statement_text>"
+        )
+
     def _extract_pdf_text(self, content: bytes) -> str:
         try:
-            from pypdf import PdfReader
+            import pdfplumber
         except ImportError as exc:
             raise StatementConfigurationError(
-                "pypdf is required to read bank statement PDFs"
+                "pdfplumber is required to read bank statement PDFs"
             ) from exc
 
         try:
-            reader = PdfReader(BytesIO(content))
-            return "\n".join(page.extract_text() or "" for page in reader.pages)
+            with pdfplumber.open(BytesIO(content)) as pdf:
+                page_texts = [
+                    self._normalize_layout_text(page.extract_text(layout=True) or "")
+                    for page in pdf.pages
+                ]
         except Exception as exc:
-            raise StatementIngestionError("Uploaded file could not be parsed as a PDF") from exc
+            raise CorruptedPdfError(
+                "Uploaded file is corrupted or could not be parsed as a PDF"
+            ) from exc
+
+        if not any(page_texts):
+            raise ScannedPdfError(
+                "The uploaded PDF appears to be a scanned or image-only document; "
+                "a text-based bank statement is required"
+            )
+
+        return "\n\n".join(
+            f"--- PAGE {number} ---\n{page_text}"
+            for number, page_text in enumerate(page_texts, start=1)
+        )
+
+    @staticmethod
+    def _normalize_layout_text(text: str) -> str:
+        """Trim trailing whitespace and collapse blank-line runs while keeping indentation."""
+        normalized: list[str] = []
+        for raw_line in text.splitlines():
+            line = raw_line.rstrip()
+            if not line and normalized and not normalized[-1]:
+                continue
+            normalized.append(line)
+        return "\n".join(normalized).strip("\n")
 
     def _resolve_category(self, transaction: ExtractedTransaction) -> Category | None:
         if transaction.category_id is not None:
