@@ -78,9 +78,9 @@ describe("App", () => {
     expect(screen.getByText("Net savings")).toBeInTheDocument();
     expect(screen.queryByText("Savings %")).not.toBeInTheDocument();
     expect(screen.getByText("Savings Goals")).toBeInTheDocument();
-    expect(screen.getByText("15000$")).toBeInTheDocument();
+    expect(screen.getByText("$15,000.00")).toBeInTheDocument();
     expect(screen.getByText("73.3%")).toBeInTheDocument();
-    expect(screen.getByText("10995.86$")).toBeInTheDocument();
+    expect(screen.getAllByText("$10,995.86").length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText("2026-01-01").length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText("2026-12-31").length).toBeGreaterThanOrEqual(1);
   });

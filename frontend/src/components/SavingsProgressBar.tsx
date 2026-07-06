@@ -2,6 +2,7 @@ import { memo, useEffect, useState } from "react";
 import type { FormEvent } from "react";
 
 import type { NormalizedSavingsGoal, ResourceState, SavingsGoalUpdate } from "../types/dashboard";
+import { formatMoney } from "../utils/format";
 
 interface SavingsProgressBarProps {
   goal: ResourceState<NormalizedSavingsGoal | null>;
@@ -14,11 +15,6 @@ function initialForm(goal: NormalizedSavingsGoal | null): SavingsGoalUpdate {
     start_date: goal?.startDate ?? "",
     end_date: goal?.endDate ?? ""
   };
-}
-
-function formatAmountSuffix(value: number): string {
-  const formatted = Number.isInteger(value) ? value.toString() : value.toFixed(2);
-  return `${formatted}$`;
 }
 
 function calculateProgressPercentage(progress: number, targetAmount: number): number {
@@ -69,14 +65,12 @@ export const SavingsProgressBar = memo(function SavingsProgressBar({
   const isNegative = progress < 0;
   const isPositive = progress > 0;
   const fillColorClass = isNegative ? "bg-danger" : "bg-accent";
-  const anchorPercentageInsideFill = fillWidth >= 95 && fillWidth > 0;
-  const percentageColorClass = anchorPercentageInsideFill
-    ? "text-canvas"
-    : isNegative
-      ? "text-danger"
-      : isPositive
-        ? "text-accent"
-        : "text-ink";
+  const percentageColorClass = isNegative ? "text-danger" : isPositive ? "text-accent" : "text-ink";
+  const markerColorClass = isNegative
+    ? "border-danger bg-danger"
+    : isPositive
+      ? "border-accent bg-accent"
+      : "border-ink bg-canvas";
 
   return (
     <section className="h-full bg-canvas p-4">
@@ -155,35 +149,30 @@ export const SavingsProgressBar = memo(function SavingsProgressBar({
         </form>
       ) : currentGoal !== null ? (
         <div className="mt-4 grid grid-cols-[auto_1fr_auto] items-center gap-x-3 gap-y-2">
-          <p className="text-lg font-bold text-ink">{loading ? "--" : formatAmountSuffix(progress)}</p>
+          <p className="text-lg font-bold text-ink">{loading ? "--" : formatMoney(progress)}</p>
 
-          <div className="relative min-h-[2.5rem] min-w-0 border border-grid bg-canvas">
-            {(isPositive || isNegative) && fillWidth > 0 ? (
-              <div
-                aria-hidden="true"
-                className={`absolute inset-y-0 left-0 ${fillColorClass}`}
-                style={{ width: `${fillWidth}%` }}
-              />
-            ) : null}
-            <p
-              className={`text-sm font-bold ${percentageColorClass} ${
-                anchorPercentageInsideFill
-                  ? "absolute inset-y-0 flex items-center justify-end px-2"
-                  : "relative px-2 py-2"
-              }`}
-              style={
-                anchorPercentageInsideFill
-                  ? { left: 0, width: `${fillWidth}%` }
-                  : fillWidth > 0 && fillWidth < 100
-                    ? { marginLeft: `${fillWidth}%` }
-                    : undefined
-              }
+          <div className="relative min-h-[3rem] min-w-0 py-5">
+            <div className="relative h-1.5 border border-grid bg-canvas">
+              {(isPositive || isNegative) && fillWidth > 0 ? (
+                <div
+                  aria-hidden="true"
+                  className={`absolute inset-y-0 left-0 ${fillColorClass}`}
+                  style={{ width: `${fillWidth}%` }}
+                />
+              ) : null}
+            </div>
+            <div
+              className="absolute top-1/2 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center"
+              style={{ left: `${fillWidth}%` }}
             >
-              {loading ? "--" : formatProgressPercentage(percentage)}
-            </p>
+              <span className={`absolute bottom-full mb-2 whitespace-nowrap text-sm font-bold ${percentageColorClass}`}>
+                {loading ? "--" : formatProgressPercentage(percentage)}
+              </span>
+              <span aria-hidden="true" className={`block h-3 w-3 rounded-full border-2 ${markerColorClass}`} />
+            </div>
           </div>
 
-          <p className="text-lg font-bold text-ink">{loading ? "--" : formatAmountSuffix(targetAmount)}</p>
+          <p className="text-lg font-bold text-ink">{loading ? "--" : formatMoney(targetAmount)}</p>
 
           <span aria-hidden="true" />
           <div className="flex justify-between text-xs text-ink">
