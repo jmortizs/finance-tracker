@@ -96,10 +96,7 @@ export function getBalanceEvolution(
   signal?: AbortSignal
 ): Promise<BalanceEvolutionPoint[]> {
   return fetchJson<BalanceEvolutionPoint[]>(
-    `/dashboard/charts/balance-evolution${buildDashboardQuery(filters, {
-      start_date: null,
-      end_date: null
-    })}`,
+    `/dashboard/charts/balance-evolution${buildDashboardQuery(filters)}`,
     signal
   );
 }

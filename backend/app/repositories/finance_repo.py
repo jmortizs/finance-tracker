@@ -270,10 +270,15 @@ class FinanceRepository:
         return Decimal(balance) if balance is not None else Decimal("0.00")
 
     def get_monthly_balance_snapshots(
-        self, *, bank_id: int | None = None, account_id: int | None = None
+        self,
+        *,
+        start_date: date | None = None,
+        end_date: date | None = None,
+        bank_id: int | None = None,
+        account_id: int | None = None,
     ) -> list[tuple[date, Decimal]]:
         stmt = (
-            self._filtered_transactions(None, None, bank_id, account_id)
+            self._filtered_transactions(None, end_date, bank_id, account_id)
             .where(Transaction.balance.is_not(None))
             .with_only_columns(
                 Transaction.account_id.label("account_id"),
@@ -296,16 +301,25 @@ class FinanceRepository:
             month_balances[row.account_id] = Decimal(row.balance)
 
         first_month = min(monthly_account_balances)
-        last_month = max(monthly_account_balances)
+        output_start_month = start_date.replace(day=1) if start_date is not None else first_month
+        output_end_month = (
+            end_date.replace(day=1) if end_date is not None else max(monthly_account_balances)
+        )
+        if output_start_month > output_end_month:
+            return []
+
         month_cursor = first_month
         latest_balances: dict[int, Decimal] = {}
         monthly_totals: list[tuple[date, Decimal]] = []
 
-        while month_cursor <= last_month:
+        while month_cursor <= output_end_month:
             for account, balance in monthly_account_balances.get(month_cursor, {}).items():
                 latest_balances[account] = balance
 
-            monthly_totals.append((month_cursor, sum(latest_balances.values(), Decimal("0.00"))))
+            if month_cursor >= output_start_month:
+                monthly_totals.append(
+                    (month_cursor, sum(latest_balances.values(), Decimal("0.00")))
+                )
             month_cursor = self._next_month(month_cursor)
 
         return monthly_totals

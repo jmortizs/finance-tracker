@@ -86,12 +86,23 @@ class StubFinanceRepository:
         return Decimal("0.00")
 
     def get_monthly_balance_snapshots(
-        self, *, bank_id: int | None = None, account_id: int | None = None
+        self,
+        *,
+        start_date: date | None = None,
+        end_date: date | None = None,
+        bank_id: int | None = None,
+        account_id: int | None = None,
     ) -> list[tuple[date, Decimal]]:
-        return [
+        rows = [
             (date(2026, 4, 1), Decimal("9000.00")),
             (date(2026, 5, 1), Decimal("9500.00")),
             (date(2026, 6, 1), Decimal("9300.00")),
+        ]
+        return [
+            (month, balance)
+            for month, balance in rows
+            if (start_date is None or month >= start_date.replace(day=1))
+            and (end_date is None or month <= end_date.replace(day=1))
         ]
 
     def get_monthly_type_totals(
@@ -217,6 +228,17 @@ def test_balance_evolution_reports_monthly_closing_balances() -> None:
         Decimal("9500.00"),
         Decimal("9300.00"),
     ]
+
+
+def test_balance_evolution_passes_date_filters() -> None:
+    engine = AnalyticsEngine(StubFinanceRepository())  # type: ignore[arg-type]
+
+    points = engine.get_balance_evolution(
+        start_date=date(2026, 5, 15),
+        end_date=date(2026, 6, 30),
+    )
+
+    assert [point.month for point in points] == [date(2026, 5, 1), date(2026, 6, 1)]
 
 
 def test_distribution_calculates_percentages() -> None:
@@ -440,4 +462,18 @@ def test_monthly_balance_snapshots_carry_forward_latest_account_balances() -> No
             (date(2026, 1, 1), Decimal("1000.00")),
             (date(2026, 2, 1), Decimal("1000.00")),
             (date(2026, 3, 1), Decimal("1300.00")),
+        ]
+        assert repository.get_monthly_balance_snapshots(
+            start_date=date(2026, 2, 1),
+            end_date=date(2026, 2, 28),
+            bank_id=primary_bank.id,
+        ) == [
+            (date(2026, 2, 1), Decimal("6000.00")),
+        ]
+        assert repository.get_monthly_balance_snapshots(
+            start_date=date(2026, 2, 1),
+            end_date=date(2026, 2, 28),
+            account_id=checking.id,
+        ) == [
+            (date(2026, 2, 1), Decimal("1000.00")),
         ]

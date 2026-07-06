@@ -46,11 +46,15 @@ def get_dashboard_metrics(
 
 @router.get("/dashboard/charts/balance-evolution", response_model=list[BalanceEvolutionPoint])
 def get_balance_evolution(
+    start_date: date | None = None,
+    end_date: date | None = None,
     bank_id: int | None = Query(default=None, gt=0),
     account_id: int | None = Query(default=None, gt=0),
     engine: AnalyticsEngine = Depends(get_analytics_engine),
 ) -> list[BalanceEvolutionPoint]:
-    return engine.get_balance_evolution(bank_id=bank_id, account_id=account_id)
+    return engine.get_balance_evolution(
+        start_date=start_date, end_date=end_date, bank_id=bank_id, account_id=account_id
+    )
 
 
 @router.get("/dashboard/charts/cash-flow", response_model=list[CashFlowPoint])

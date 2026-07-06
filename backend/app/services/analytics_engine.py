@@ -102,12 +102,20 @@ class AnalyticsEngine:
         )
 
     def get_balance_evolution(
-        self, *, bank_id: int | None = None, account_id: int | None = None
+        self,
+        *,
+        start_date: date | None = None,
+        end_date: date | None = None,
+        bank_id: int | None = None,
+        account_id: int | None = None,
     ) -> list[BalanceEvolutionPoint]:
         return [
             BalanceEvolutionPoint(month=month, balance=self._money(balance))
             for month, balance in self.repository.get_monthly_balance_snapshots(
-                bank_id=bank_id, account_id=account_id
+                start_date=start_date,
+                end_date=end_date,
+                bank_id=bank_id,
+                account_id=account_id,
             )
         ]
 
