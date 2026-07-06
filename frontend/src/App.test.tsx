@@ -69,7 +69,7 @@ vi.mock("./hooks/useDashboard", () => ({
 }));
 
 describe("App", () => {
-  it("replaces the Savings % metric with the savings goal card", () => {
+  it("renders metrics row and savings progress bar below it", () => {
     render(<App />);
 
     expect(screen.getByText("Balance")).toBeInTheDocument();
@@ -77,10 +77,11 @@ describe("App", () => {
     expect(screen.getByText("Expenses")).toBeInTheDocument();
     expect(screen.getByText("Net savings")).toBeInTheDocument();
     expect(screen.queryByText("Savings %")).not.toBeInTheDocument();
-    expect(screen.getByText("Savings Goal")).toBeInTheDocument();
-    expect(screen.getByText("$15,000.00")).toBeInTheDocument();
-    expect(screen.getByText("73.31%")).toBeInTheDocument();
-    expect(screen.getAllByText("$10,995.86").length).toBeGreaterThanOrEqual(1);
-    expect(screen.getByText("2026-12-31")).toBeInTheDocument();
+    expect(screen.getByText("Savings Goals")).toBeInTheDocument();
+    expect(screen.getByText("15000$")).toBeInTheDocument();
+    expect(screen.getByText("73.3%")).toBeInTheDocument();
+    expect(screen.getByText("10995.86$")).toBeInTheDocument();
+    expect(screen.getAllByText("2026-01-01").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText("2026-12-31").length).toBeGreaterThanOrEqual(1);
   });
 });
