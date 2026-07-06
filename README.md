@@ -16,9 +16,12 @@ docker compose up --build
 
 The API documentation is available at `http://localhost:8000/docs`.
 The dashboard frontend is available at `http://localhost:5173`.
-On startup the backend creates the PostgreSQL schema from `backend/specs.md` and loads
-deterministic mock data for local API testing. To start with an empty database, set
-`SEED_MOCK_DATA=false` for the backend service.
+On startup the backend creates the PostgreSQL schema from `backend/specs.md`, seeds
+seven default Spanish categories (`ingresos`, `egresos`, `salario`, `intereses`,
+`pago tarjeta crédito`, `seguros`, `retiro de efectivo`), and loads deterministic
+mock data for local API testing when enabled. To start without mock transactions,
+set `SEED_MOCK_DATA=false` for the backend service; default categories are still
+seeded on every startup.
 
 The frontend uses a Vite development proxy for relative `/api/v1` requests. In Docker,
 that proxy targets the backend service at `http://backend:8000`; when running the
