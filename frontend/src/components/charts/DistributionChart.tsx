@@ -53,8 +53,8 @@ interface DistributionChartProps {
 
 export function DistributionChart({ data }: DistributionChartProps) {
   return (
-    <div className="grid gap-4 xl:grid-cols-[minmax(220px,0.8fr)_minmax(0,1.2fr)]">
-      <div className="h-[280px] min-w-0">
+    <div className="grid gap-4 lg:h-full lg:min-h-0 lg:grid-rows-[minmax(0,1fr)_minmax(0,1fr)] xl:grid-cols-[minmax(220px,0.8fr)_minmax(0,1.2fr)] xl:grid-rows-[minmax(0,1fr)]">
+      <div className="h-[280px] min-w-0 lg:h-full lg:min-h-[160px]">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie
@@ -77,7 +77,7 @@ export function DistributionChart({ data }: DistributionChartProps) {
         </ResponsiveContainer>
       </div>
 
-      <div className="min-w-0 overflow-x-auto border border-grid">
+      <div className="min-w-0 overflow-x-auto border border-grid lg:min-h-0 lg:overflow-y-auto">
         <table className="w-full min-w-[360px] border-collapse text-left text-xs uppercase">
           <thead className="text-muted">
             <tr>

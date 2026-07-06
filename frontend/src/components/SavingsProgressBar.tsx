@@ -79,9 +79,9 @@ export const SavingsProgressBar = memo(function SavingsProgressBar({
         : "text-ink";
 
   return (
-    <section className="border border-grid bg-canvas p-4">
+    <section className="h-full bg-canvas p-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
-        <p className="text-xs font-bold uppercase text-muted-strong">Savings Goal</p>
+        <p className="text-xs font-bold uppercase text-muted-strong">Savings Goals</p>
         {configured && !showForm ? (
           <button
             className="border border-ink px-2 py-1 text-xs font-bold uppercase text-ink hover:border-accent hover:text-accent"

@@ -23,7 +23,7 @@ export function CashFlowChart({ data }: CashFlowChartProps) {
   }));
 
   return (
-    <div className="h-[320px] w-full">
+    <div className="h-[320px] w-full lg:h-full lg:min-h-[160px]">
       <ResponsiveContainer width="100%" height="100%">
         <LineChart data={chartData} margin={{ top: 12, right: 18, left: 0, bottom: 0 }}>
           <CartesianGrid stroke="#1C1C1C" strokeDasharray="0" />
