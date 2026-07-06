@@ -1,7 +1,7 @@
 import { FilterSidebar } from "./components/FilterSidebar";
 import { MetricCard } from "./components/MetricCard";
 import { ChartPanel } from "./components/PanelState";
-import { SavingsGoalCard } from "./components/SavingsGoalCard";
+import { SavingsProgressBar } from "./components/SavingsProgressBar";
 import { BalanceEvolutionChart } from "./components/charts/BalanceEvolutionChart";
 import { CashFlowChart } from "./components/charts/CashFlowChart";
 import { DistributionChart } from "./components/charts/DistributionChart";
@@ -38,7 +38,7 @@ export function App() {
             </div>
           </header>
 
-          <section className="grid gap-px bg-grid p-px sm:grid-cols-2 xl:grid-cols-5">
+          <section className="grid gap-px bg-grid p-px sm:grid-cols-2 xl:grid-cols-4">
             <MetricCard
               label="Balance"
               metric={dashboard.metrics.data?.balance ?? null}
@@ -63,10 +63,12 @@ export function App() {
               tone="savings"
               loading={metricsLoading}
             />
-            <SavingsGoalCard
+          </section>
+
+          <section className="border-b border-grid p-4 sm:px-6">
+            <SavingsProgressBar
               goal={dashboard.savingsGoal}
               onSave={dashboard.saveSavingsGoal}
-              variant="metric"
             />
           </section>
 
