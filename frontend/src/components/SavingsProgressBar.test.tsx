@@ -61,6 +61,33 @@ describe("SavingsProgressBar", () => {
     expect(container.querySelector(".bg-accent")).toBeInTheDocument();
   });
 
+  it("anchors percentage inside the fill when progress is at or above 95%", () => {
+    render(
+      <SavingsProgressBar
+        goal={buildGoal({ progress: 970, targetAmount: 1000, completionPercentage: 97 })}
+        onSave={vi.fn()}
+      />
+    );
+
+    const label = screen.getByText("97.0%");
+    expect(label).toHaveStyle({ width: "97%" });
+    expect(label.style.marginLeft).toBe("");
+    expect(label).toHaveClass("text-canvas");
+  });
+
+  it("keeps trailing percentage placement below 95% progress", () => {
+    render(
+      <SavingsProgressBar
+        goal={buildGoal({ progress: 940, targetAmount: 1000, completionPercentage: 94 })}
+        onSave={vi.fn()}
+      />
+    );
+
+    const label = screen.getByText("94.0%");
+    expect(label.style.marginLeft).toBe("94%");
+    expect(label.style.width).toBe("");
+  });
+
   it("saves inline edits without navigation", async () => {
     const user = userEvent.setup();
     const onSave = vi.fn().mockResolvedValue(undefined);

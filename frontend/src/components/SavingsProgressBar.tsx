@@ -69,7 +69,14 @@ export const SavingsProgressBar = memo(function SavingsProgressBar({
   const isNegative = progress < 0;
   const isPositive = progress > 0;
   const fillColorClass = isNegative ? "bg-danger" : "bg-accent";
-  const percentageColorClass = isNegative ? "text-danger" : isPositive ? "text-accent" : "text-ink";
+  const anchorPercentageInsideFill = fillWidth >= 95 && fillWidth > 0;
+  const percentageColorClass = anchorPercentageInsideFill
+    ? "text-canvas"
+    : isNegative
+      ? "text-danger"
+      : isPositive
+        ? "text-accent"
+        : "text-ink";
 
   return (
     <section className="border border-grid bg-canvas p-4">
@@ -150,7 +157,7 @@ export const SavingsProgressBar = memo(function SavingsProgressBar({
         <div className="mt-4 grid grid-cols-[auto_1fr_auto] items-center gap-x-3 gap-y-2">
           <p className="text-lg font-bold text-ink">{loading ? "--" : formatAmountSuffix(progress)}</p>
 
-          <div className="relative min-w-0 border border-grid bg-canvas">
+          <div className="relative min-h-[2.5rem] min-w-0 border border-grid bg-canvas">
             {(isPositive || isNegative) && fillWidth > 0 ? (
               <div
                 aria-hidden="true"
@@ -159,8 +166,18 @@ export const SavingsProgressBar = memo(function SavingsProgressBar({
               />
             ) : null}
             <p
-              className={`relative px-2 py-2 text-sm font-bold ${percentageColorClass}`}
-              style={{ marginLeft: fillWidth > 0 && fillWidth < 100 ? `${fillWidth}%` : undefined }}
+              className={`text-sm font-bold ${percentageColorClass} ${
+                anchorPercentageInsideFill
+                  ? "absolute inset-y-0 flex items-center justify-end px-2"
+                  : "relative px-2 py-2"
+              }`}
+              style={
+                anchorPercentageInsideFill
+                  ? { left: 0, width: `${fillWidth}%` }
+                  : fillWidth > 0 && fillWidth < 100
+                    ? { marginLeft: `${fillWidth}%` }
+                    : undefined
+              }
             >
               {loading ? "--" : formatProgressPercentage(percentage)}
             </p>
