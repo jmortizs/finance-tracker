@@ -23,11 +23,15 @@ def get_db() -> Generator[Session, None, None]:
 
 
 def init_db() -> None:
+    from app.default_categories import seed_default_categories
     from app.models import domain_entities  # noqa: F401
     from app.seed_data import seed_mock_data
 
     Base.metadata.create_all(bind=engine)
     sync_statement_schema()
+
+    with SessionLocal() as db:
+        seed_default_categories(db)
 
     if get_settings().seed_mock_data:
         with SessionLocal() as db:
