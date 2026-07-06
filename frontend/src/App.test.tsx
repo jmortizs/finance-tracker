@@ -77,7 +77,7 @@ describe("App", () => {
     expect(screen.getByText("Expenses")).toBeInTheDocument();
     expect(screen.getByText("Net savings")).toBeInTheDocument();
     expect(screen.queryByText("Savings %")).not.toBeInTheDocument();
-    expect(screen.getByText("Savings Goals")).toBeInTheDocument();
+    expect(screen.getByText("Savings goal")).toBeInTheDocument();
     expect(screen.getByText("$15,000.00")).toBeInTheDocument();
     expect(screen.getByText("73.3%")).toBeInTheDocument();
     expect(screen.getAllByText("$10,995.86").length).toBeGreaterThanOrEqual(1);

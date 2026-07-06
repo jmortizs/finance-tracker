@@ -32,7 +32,7 @@ describe("SavingsProgressBar", () => {
       />
     );
 
-    expect(screen.getByText("Savings Goals")).toBeInTheDocument();
+    expect(screen.getByText("Savings goal")).toBeInTheDocument();
     expect(screen.getByText("$9,635,786.49")).toBeInTheDocument();
     expect(screen.getByText("$15,000,000.00")).toBeInTheDocument();
     expect(screen.getByText("64.2%")).toBeInTheDocument();
