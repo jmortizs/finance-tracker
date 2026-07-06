@@ -48,14 +48,14 @@ export function MetricCard({
     : "--";
 
   return (
-    <section className="min-h-[132px] border border-grid bg-canvas p-4">
+    <section className="bg-canvas p-4">
       <div className="flex items-start justify-between gap-3">
         <h2 className="text-xs font-bold uppercase text-muted-strong">{label}</h2>
       </div>
-      <p className={`mt-5 break-words text-2xl font-bold ${valueClassName(tone, metric?.value ?? null)}`}>
+      <p className={`mt-2 break-words text-2xl font-bold ${valueClassName(tone, metric?.value ?? null)}`}>
         {loading ? "--" : value}
       </p>
-      <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2 text-xs uppercase text-muted">
+      <div className="mt-2 flex flex-wrap gap-x-4 gap-y-2 text-xs uppercase text-muted">
         <span className={valueClassName(tone, metric?.previousValue ?? null)}>
           Prev {loading ? "--" : previous}
         </span>

@@ -12,8 +12,8 @@ export function App() {
   const metricsLoading = dashboard.metrics.status === "loading" || dashboard.metrics.status === "idle";
 
   return (
-    <div className="min-h-screen bg-canvas text-ink">
-      <div className="lg:flex">
+    <div className="min-h-screen bg-canvas text-ink lg:h-dvh lg:min-h-0 lg:overflow-hidden">
+      <div className="lg:flex lg:h-full">
         <FilterSidebar
           filters={dashboard.filters}
           options={dashboard.options}
@@ -23,22 +23,8 @@ export function App() {
           onRefresh={dashboard.refresh}
         />
 
-        <main className="min-w-0 flex-1">
-          <header className="border-b border-grid px-4 py-4 sm:px-6">
-            <div className="flex flex-wrap items-end justify-between gap-4">
-              <div>
-                <p className="text-xs uppercase text-muted">Local Analytics</p>
-                <h2 className="mt-2 text-lg font-bold uppercase text-ink sm:text-2xl">
-                  Finance Overview
-                </h2>
-              </div>
-              <span className="border border-accent px-3 py-2 text-xs font-bold uppercase text-accent">
-                API /api/v1
-              </span>
-            </div>
-          </header>
-
-          <section className="grid gap-px bg-grid p-px sm:grid-cols-2 xl:grid-cols-4">
+        <main className="grid min-w-0 flex-1 grid-rows-[auto_auto_minmax(0,1fr)] gap-px bg-grid p-px lg:h-full lg:overflow-hidden">
+          <section className="grid gap-px sm:grid-cols-2 xl:grid-cols-4">
             <MetricCard
               label="Balance"
               metric={dashboard.metrics.data?.balance ?? null}
@@ -65,14 +51,14 @@ export function App() {
             />
           </section>
 
-          <section className="border-b border-grid p-4 sm:px-6">
+          <section className="min-w-0">
             <SavingsProgressBar
               goal={dashboard.savingsGoal}
               onSave={dashboard.saveSavingsGoal}
             />
           </section>
 
-          <section className="grid gap-4 p-4 sm:p-6 2xl:grid-cols-2">
+          <section className="grid min-h-0 gap-px lg:grid-cols-2 lg:grid-rows-[minmax(0,1fr)_minmax(0,1fr)]">
             <ChartPanel
               title="Balance Evolution"
               status={dashboard.balanceEvolution.status}
