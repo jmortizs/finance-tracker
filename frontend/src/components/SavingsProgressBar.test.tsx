@@ -25,12 +25,17 @@ function buildGoal(
 
 describe("SavingsProgressBar", () => {
   it("renders progress bar with amounts, dates, and positive percentage", () => {
-    render(<SavingsProgressBar goal={buildGoal()} onSave={vi.fn()} />);
+    render(
+      <SavingsProgressBar
+        goal={buildGoal({ progress: 9635786.49, targetAmount: 15000000, completionPercentage: 64.2 })}
+        onSave={vi.fn()}
+      />
+    );
 
     expect(screen.getByText("Savings Goals")).toBeInTheDocument();
-    expect(screen.getByText("200$")).toBeInTheDocument();
-    expect(screen.getByText("1000$")).toBeInTheDocument();
-    expect(screen.getByText("20.0%")).toBeInTheDocument();
+    expect(screen.getByText("$9,635,786.49")).toBeInTheDocument();
+    expect(screen.getByText("$15,000,000.00")).toBeInTheDocument();
+    expect(screen.getByText("64.2%")).toBeInTheDocument();
     expect(screen.getByText("2026-01-01")).toBeInTheDocument();
     expect(screen.getByText("2026-12-31")).toBeInTheDocument();
   });
@@ -40,8 +45,11 @@ describe("SavingsProgressBar", () => {
       <SavingsProgressBar goal={buildGoal({ progress: 0, completionPercentage: 0 })} onSave={vi.fn()} />
     );
 
-    expect(screen.getByText("0$")).toBeInTheDocument();
-    expect(screen.getByText("0.0%")).toBeInTheDocument();
+    const label = screen.getByText("0.0%");
+    expect(screen.getByText("$0.00")).toBeInTheDocument();
+    expect(label).toBeInTheDocument();
+    expect(label.parentElement).not.toBeNull();
+    expect(label.parentElement as HTMLElement).toHaveStyle({ left: "0%" });
     expect(container.querySelector(".bg-accent")).not.toBeInTheDocument();
   });
 
@@ -50,7 +58,7 @@ describe("SavingsProgressBar", () => {
       <SavingsProgressBar goal={buildGoal({ progress: -200, completionPercentage: -20 })} onSave={vi.fn()} />
     );
 
-    expect(screen.getByText("-200$")).toBeInTheDocument();
+    expect(screen.getByText("-$200.00")).toBeInTheDocument();
     expect(screen.getByText("-20.0%")).toBeInTheDocument();
     expect(container.querySelector(".bg-danger")).toBeInTheDocument();
   });
@@ -61,31 +69,16 @@ describe("SavingsProgressBar", () => {
     expect(container.querySelector(".bg-accent")).toBeInTheDocument();
   });
 
-  it("anchors percentage inside the fill when progress is at or above 95%", () => {
-    render(
-      <SavingsProgressBar
-        goal={buildGoal({ progress: 970, targetAmount: 1000, completionPercentage: 97 })}
-        onSave={vi.fn()}
-      />
-    );
+  it("positions the percentage label and marker at the current progress point", () => {
+    render(<SavingsProgressBar goal={buildGoal()} onSave={vi.fn()} />);
 
-    const label = screen.getByText("97.0%");
-    expect(label).toHaveStyle({ width: "97%" });
-    expect(label.style.marginLeft).toBe("");
-    expect(label).toHaveClass("text-canvas");
-  });
+    const label = screen.getByText("20.0%");
+    const markerGroup = label.parentElement;
 
-  it("keeps trailing percentage placement below 95% progress", () => {
-    render(
-      <SavingsProgressBar
-        goal={buildGoal({ progress: 940, targetAmount: 1000, completionPercentage: 94 })}
-        onSave={vi.fn()}
-      />
-    );
-
-    const label = screen.getByText("94.0%");
-    expect(label.style.marginLeft).toBe("94%");
-    expect(label.style.width).toBe("");
+    expect(markerGroup).not.toBeNull();
+    expect(markerGroup as HTMLElement).toHaveStyle({ left: "20%" });
+    expect(label).toHaveClass("text-accent");
+    expect(markerGroup?.querySelector(".rounded-full.bg-accent")).toBeInTheDocument();
   });
 
   it("saves inline edits without navigation", async () => {
