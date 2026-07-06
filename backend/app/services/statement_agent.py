@@ -22,6 +22,12 @@ def build_statement_agent(
         output_type=StatementExtraction,
         instructions=(
             "You extract bank statement data for a local personal finance dashboard. "
+            "Your input is plain text deterministically extracted from a PDF with its "
+            "two-dimensional layout preserved: spacing and column alignment mirror the original "
+            "document, and pages are separated by '--- PAGE n ---' markers. Act as a parser of "
+            "this pre-extracted spatial text: map each tabular row to exactly one transaction "
+            "using the preserved column alignment to associate dates, descriptions, amounts, and "
+            "balances. Never invent values that are not present in the text. "
             "Return only structured data matching the output schema. Use positive amounts for "
             "income and expenses, classify each transaction as INCOME or EXPENSE, and use the "
             "database tools to map known banks, accounts, and categories. Default all currencies "

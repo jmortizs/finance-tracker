@@ -12,3 +12,5 @@ backend/.venv/
 !.env.example
 
 postgres_data/
+
+statements/

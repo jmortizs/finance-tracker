@@ -52,7 +52,8 @@ All dashboard endpoints are mounted under `/api/v1`:
 Optional dashboard filters use `start_date`, `end_date`, `bank_id`, and `account_id` where supported by the endpoint.
 The savings goal endpoint is filter-isolated: progress is calculated from income minus expenses within the goal's own `start_date` and `end_date`.
 The main dashboard includes an inline-editable savings goal card for `target_amount`, `start_date`, and `end_date`.
-Bank statement ingestion accepts one PDF at `/api/v1/statements/upload`, rejects duplicate files by SHA-256 hash, extracts transactions with Pydantic-AI/OpenAI, validates statement arithmetic, defaults currency to `COP` unless specified, and skips duplicate issuer transactions by `account_id`, `bank_id`, and `transaction_date`.
+Bank statement ingestion accepts one PDF at `/api/v1/statements/upload`, rejects duplicate files by SHA-256 hash, extracts layout-preserved text deterministically with `pdfplumber` before parsing it with Pydantic-AI/OpenAI, validates statement arithmetic, defaults currency to `COP` unless specified, and skips duplicate issuer transactions by `account_id`, `bank_id`, and `transaction_date`.
+Corrupted or unparseable PDFs are rejected with HTTP 400, and image-only (scanned) PDFs with no extractable text are rejected with HTTP 422 before any AI call.
 
 ## AI Statement Ingestion Configuration
 
