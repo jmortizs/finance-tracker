@@ -66,7 +66,7 @@ describe("DistributionChart", () => {
     expect(screen.getAllByTestId("cell")[0]).toHaveAttribute("data-fill", "#FF4D4D");
   });
 
-  it("renders legible tooltip content with category, amount, and share", () => {
+  it("renders legible income tooltip content with green category label", () => {
     const { container } = render(
       <DistributionTooltipContent
         active
@@ -85,9 +85,31 @@ describe("DistributionChart", () => {
       />
     );
 
-    expect(screen.getByText("Interest")).toBeInTheDocument();
+    expect(screen.getByText("Interest")).toHaveClass("text-accent");
     expect(screen.getByText("$150.00")).toBeInTheDocument();
     expect(screen.getByText("12.50%")).toBeInTheDocument();
     expect(container.firstChild).toHaveClass("bg-canvas", "text-ink", "border-grid");
+  });
+
+  it("renders expense tooltip category label in red", () => {
+    render(
+      <DistributionTooltipContent
+        active
+        payload={[
+          {
+            value: 75,
+            payload: {
+              categoryId: 1,
+              categoryName: "Groceries",
+              type: "EXPENSE",
+              amount: 75,
+              percentage: 75
+            }
+          }
+        ]}
+      />
+    );
+
+    expect(screen.getByText("Groceries")).toHaveClass("text-danger");
   });
 });

@@ -38,9 +38,11 @@ export function DistributionTooltipContent({ active, payload }: DistributionTool
     ? Number(firstPayload.value)
     : point.amount;
 
+  const categoryColorClass = point.type === "EXPENSE" ? "text-danger" : "text-accent";
+
   return (
     <div className="border border-grid bg-canvas px-2 py-1.5 text-xs uppercase text-ink">
-      <div className="text-accent">{categoryName}</div>
+      <div className={categoryColorClass}>{categoryName}</div>
       <div className="text-ink">{formatMoney(amount)}</div>
       <div className="text-muted">{formatPercent(point.percentage)}</div>
     </div>
