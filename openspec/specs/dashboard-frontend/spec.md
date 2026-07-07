@@ -100,6 +100,8 @@ The system SHALL render balance evolution, cash flow, and category distribution 
 - **WHEN** the user hovers a segment in either distribution donut chart
 - **THEN** the system displays a non-empty tooltip that includes category identity and value context
 - **AND** tooltip text and background maintain readable contrast against the dashboard theme
+- **AND** expense distribution tooltip category identity is displayed in red
+- **AND** income distribution tooltip category identity is displayed in green
 
 #### Scenario: Charts resize with the viewport
 - **WHEN** the browser window is resized within standard desktop resolutions
