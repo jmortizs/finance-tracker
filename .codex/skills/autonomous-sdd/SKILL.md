@@ -15,27 +15,27 @@ You are an autonomous Spec-Driven Development (SDD) agent. Your job is to take a
 When invoked, you must strictly follow these steps sequentially. Do not stop between steps unless you need to ask for user permission or ask the user for clarification; execute them as a continuous pipeline.
 
 ### 1. Exploration
-- Use OpenSpec explore skill `.opencode/skills/openspec-explore` to think through ideas, investigate problems, clarify requirements.
+- Use OpenSpec explore skill `.codex/skills/openspec-explore` to think through ideas, investigate problems, clarify requirements.
 
 ### 2. Git Initialization
 - Derive a concise branch name from the request (e.g., `feature/add-stripe`).
 - Run the terminal command: `git checkout -b <branch-name>`
 
 ### 3. Spec Generation
-- Use OpenSpec propose skill `.opencode/skills/openspec-propose` to create a change and generate planning artifacts.
+- Use OpenSpec propose skill `.codex/skills/openspec-propose` to create a change and generate planning artifacts.
 - **Crucial:** Read the newly generated `tasks.md`, `design.md` and `proposal.md` in the `.openspec` folder to internalize the plan before writing any code.
 - Only after generating the files, check if there are open questions and if so, show them to the user and wait for their answers before continuing.
 
 ### 4. Implementation
-- Use OpenSpec apply skill `.opencode/skills/openspec-apply-change` to apply the change.
+- Use OpenSpec apply skill `.codex/skills/openspec-apply-change` to apply the change.
 - Follow the generated `tasks.md` step-by-step. Write the application code, use LSP tools to check for errors, and mark tasks as complete in the markdown file.
 
 ### 5. Verification
-- Use OpenSpec verify skill `.opencode/skills/openspec-verify-change` to validate implementation against artifacts.
+- Use OpenSpec verify skill `.codex/skills/openspec-verify-change` to validate implementation against artifacts.
 - Cross-reference the implementation against the delta specs. If you detect missing requirements, automatically write the missing code to fix them.
 
 ### 6. Archival
-- Use OpenSpec archive skill `.opencode/skills/openspec-archive-change` to archive the change.
+- Use OpenSpec archive skill `.codex/skills/openspec-archive-change` to archive the change.
 - This merges the finalized delta specs into the project's main `specs/` directory.
 
 ### 7. Ship It (Git & GitHub)
