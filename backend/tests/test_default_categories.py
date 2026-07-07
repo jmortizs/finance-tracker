@@ -35,13 +35,13 @@ def test_seed_default_categories_is_idempotent() -> None:
 
 def test_seed_default_categories_skips_existing_names() -> None:
     with make_session() as session:
-        session.add(Category(name="salario", type=TransactionType.EXPENSE))
+        session.add(Category(name="salary", type=TransactionType.EXPENSE))
         session.commit()
 
         seed_default_categories(session)
-        salario = session.scalar(select(Category).where(Category.name == "salario"))
+        salary = session.scalar(select(Category).where(Category.name == "salary"))
         categories = list(session.scalars(select(Category)).all())
 
-    assert salario is not None
-    assert salario.type == TransactionType.EXPENSE
+    assert salary is not None
+    assert salary.type == TransactionType.EXPENSE
     assert len(categories) == len(DEFAULT_CATEGORIES)

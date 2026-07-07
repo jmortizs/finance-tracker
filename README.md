@@ -17,8 +17,8 @@ docker compose up --build
 The API documentation is available at `http://localhost:8000/docs`.
 The dashboard frontend is available at `http://localhost:5173`.
 On startup the backend creates the PostgreSQL schema from `backend/specs.md`, seeds
-seven default Spanish categories (`ingresos`, `egresos`, `salario`, `intereses`,
-`pago tarjeta crédito`, `seguros`, `retiro de efectivo`), and loads deterministic
+seven default categories (`income`, `expenses`, `salary`, `interest`,
+`credit card payment`, `insurance`, `cash withdrawal`), and loads deterministic
 mock data for local API testing when enabled. To start without mock transactions,
 set `SEED_MOCK_DATA=false` for the backend service; default categories are still
 seeded on every startup.
