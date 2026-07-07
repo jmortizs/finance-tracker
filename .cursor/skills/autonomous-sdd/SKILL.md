@@ -12,32 +12,34 @@ description: |-
 You are an autonomous Spec-Driven Development (SDD) agent. Your job is to take a feature request and automatically orchestrate the entire OpenSpec `/opsx` lifecycle, write the code, verify it, and submit a GitHub Pull Request—without stopping to ask for user input unless a fatal error occurs.
 
 ## The Execution Loop
-When invoked, you must strictly follow these steps sequentially. Do not stop between steps unless you need to ask for user permission; execute them as a continuous pipeline.
+When invoked, you must strictly follow these steps sequentially. Do not stop between steps unless you need to ask for user permission or ask the user for clarification; execute them as a continuous pipeline.
 
-### 1. Git Initialization
+### 1. Exploration
+- Use OpenSpec explore skill `.cursor/skills/openspec-explore` to think through ideas, investigate problems, clarify requirements.
+
+### 2. Git Initialization
 - Derive a concise branch name from the request (e.g., `feature/add-stripe`).
 - Run the terminal command: `git checkout -b <branch-name>`
 
-### 2. Spec Generation
-- Execute the command: `/opsx:new <feature-name>`
-- Execute the command: `/opsx:ff <full-user-feature-description>`
+### 3. Spec Generation
+- Use OpenSpec propose skill `.cursor/skills/openspec-propose` to create a change and generate planning artifacts.
 - **Crucial:** Read the newly generated `tasks.md`, `design.md` and `proposal.md` in the `.openspec` folder to internalize the plan before writing any code.
 - Only after generating the files, check if there are open questions and if so, show them to the user and wait for their answers before continuing.
 
-### 3. Implementation
-- Execute the command: `/opsx:apply`
+### 4. Implementation
+- Use OpenSpec apply skill `.cursor/skills/openspec-apply-change` to apply the change.
 - Follow the generated `tasks.md` step-by-step. Write the application code, use LSP tools to check for errors, and mark tasks as complete in the markdown file.
 
-### 4. Verification
-- Execute the command: `/opsx:verify`
+### 5. Verification
+- Use OpenSpec verify skill `.cursor/skills/openspec-verify-change` to validate implementation against artifacts.
 - Cross-reference the implementation against the delta specs. If you detect missing requirements, automatically write the missing code to fix them.
 
-### 5. Archival
-- Execute the command: `/opsx:archive`
+### 6. Archival
+- Use OpenSpec archive skill `.cursor/skills/openspec-archive-change` to archive the change.
 - This merges the finalized delta specs into the project's main `specs/` directory.
 
-### 6. Ship It (Git & GitHub)
-- Run: `git add .`
+### 7. Ship It (Git & GitHub)
+- Add the changes to the staging area: `git add .`, be careful not to add any files that are not part of the change or may contain sensitive information.
 - Build a meaningful commit message that states the feature and intent (not a generic placeholder).
 - Prefer AI-authored commits without changing git config:
   - **Format:** `<type>(<optional scope>): <description> <list of relevant changes>`
@@ -56,5 +58,5 @@ When invoked, you must strictly follow these steps sequentially. Do not stop bet
 
 ## Agent Guardrails
 - **Self-Correction:** If a terminal command fails (e.g., a compiler error during `apply`), attempt to fix the code and retry up to 2 times before halting to ask the user for help.
-- **No Premature Coding:** Do not write application code before step 3 (`/opsx:apply`). Steps 1 and 2 are strictly for planning and spec generation.
+- **No Premature Coding:** Do not write application code before step 4 (`apply-change`). Steps 1 to 3 are strictly for planning and spec generation.
 - **Never merge into main:** Never merge into the main branch. Always create a PR.
