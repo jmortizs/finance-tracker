@@ -71,10 +71,11 @@ export const SavingsProgressBar = memo(function SavingsProgressBar({
     : isPositive
       ? "border-accent bg-accent"
       : "border-ink bg-canvas";
+  const panelLayout = showForm ? "form" : "compact";
 
   return (
-    <section className="h-full bg-canvas p-4">
-      <div className="flex flex-wrap items-start justify-between gap-3">
+    <section className={`h-full bg-canvas ${showForm ? "p-4" : "px-3 py-2"}`} data-layout={panelLayout}>
+      <div className={`flex flex-wrap items-start justify-between ${showForm ? "gap-3" : "gap-2"}`}>
         <p className="text-xs font-bold uppercase text-muted-strong">Savings goal</p>
         {configured && !showForm ? (
           <button
@@ -148,10 +149,10 @@ export const SavingsProgressBar = memo(function SavingsProgressBar({
           {submitError ? <p className="text-sm text-danger md:col-span-4">{submitError}</p> : null}
         </form>
       ) : currentGoal !== null ? (
-        <div className="mt-4 grid grid-cols-[auto_1fr_auto] items-center gap-x-3 gap-y-2">
-          <p className="text-lg font-bold text-ink">{loading ? "--" : formatMoney(progress)}</p>
+        <div className="mt-2 grid grid-cols-[auto_1fr_auto] items-center gap-x-3 gap-y-1">
+          <p className="text-base font-bold text-ink">{loading ? "--" : formatMoney(progress)}</p>
 
-          <div className="relative min-h-[3rem] min-w-0 py-5">
+          <div className="relative min-h-[2rem] min-w-0 py-3">
             <div className="relative h-1.5 border border-grid bg-canvas">
               {(isPositive || isNegative) && fillWidth > 0 ? (
                 <div
@@ -165,14 +166,14 @@ export const SavingsProgressBar = memo(function SavingsProgressBar({
               className="absolute top-1/2 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center"
               style={{ left: `${fillWidth}%` }}
             >
-              <span className={`absolute bottom-full mb-2 whitespace-nowrap text-sm font-bold ${percentageColorClass}`}>
+              <span className={`absolute bottom-full mb-1 whitespace-nowrap text-xs font-bold ${percentageColorClass}`}>
                 {loading ? "--" : formatProgressPercentage(percentage)}
               </span>
               <span aria-hidden="true" className={`block h-3 w-3 rounded-full border-2 ${markerColorClass}`} />
             </div>
           </div>
 
-          <p className="text-lg font-bold text-ink">{loading ? "--" : formatMoney(targetAmount)}</p>
+          <p className="text-base font-bold text-ink">{loading ? "--" : formatMoney(targetAmount)}</p>
 
           <span aria-hidden="true" />
           <div className="flex justify-between text-xs text-ink">
