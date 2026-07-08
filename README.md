@@ -1,5 +1,30 @@
 # Personal Finance Dashboard
 
+## AI Development Motivation
+
+This project is an intentional playground for AI-assisted development. A core
+motivation is to understand, in a practical end-to-end codebase, how tools
+like Codex, Cursor, and OpenCode can be used effectively with a
+Spec-Driven Development (SDD) framework such as OpenSpec.
+
+The configured agentic workflow follows this lifecycle:
+
+1. Explore and clarify the problem space before implementation.
+2. Create proposal artifacts (`proposal.md`, `design.md`, `tasks.md`) with
+   OpenSpec.
+3. Implement tasks incrementally from the generated task list.
+4. Verify implementation completeness, correctness, and coherence against the
+   planned artifacts.
+5. Archive/sync finalized change artifacts and ship through normal git and PR
+   flow.
+
+For full automation, the `autonomous-sdd` skill orchestrates this end-to-end
+pipeline from exploration to Pull Request creation.
+
+This workflow is grounded in the constraints documented in `AGENTS.md`:
+single-user scope, local Docker execution, and no multi-tenant auth/session
+complexity.
+
 Localized single-user finance dashboard for Docker-based local deployments.
 
 ## Services
@@ -57,19 +82,39 @@ Corrupted or unparseable PDFs are rejected with HTTP 400, and image-only (scanne
 
 ## AI Statement Ingestion Configuration
 
-Copy `.env.example` to `.env` for local overrides. Statement ingestion requires:
+Copy `.env.example` to `.env` for local overrides. Statement ingestion uploads one
+text-based PDF bank statement to `POST /api/v1/statements/upload` and converts it
+into local dashboard data.
+
+The ingestion flow is:
+
+1. The API accepts a single PDF file and rejects empty or non-PDF uploads.
+2. The backend computes a SHA-256 hash for the file and rejects exact statement
+   re-uploads with HTTP 409 before doing any extraction work.
+3. `pdfplumber` extracts layout-preserved text from the PDF. Column spacing and
+   page boundaries are kept so the AI parser can map statement rows to dates,
+   descriptions, amounts, and balances. Corrupted PDFs return HTTP 400, and
+   scanned or image-only PDFs with no extractable text return HTTP 422.
+4. A Pydantic-AI agent sends the extracted text to OpenAI and asks for structured
+   statement data only. The agent can read existing local banks, accounts, and
+   categories to map the statement to known records.
+5. Pydantic validates the AI output: expenses and income use positive amounts,
+   transactions are classified as `INCOME` or `EXPENSE`, currency defaults to
+   `COP`, and statement arithmetic must satisfy
+   `final_balance = initial_balance + total_income - total_expenses`.
+6. The service creates or reuses the bank and account, records the uploaded
+   statement, resolves transaction categories by id or name/type, and inserts only
+   transactions that are not already present for the same account, issuer
+   transaction id, and transaction date.
+
+The upload response returns the stored statement id, file hash, bank/account ids,
+and counts for inserted and skipped transactions.
+
+Statement ingestion requires:
 
 - `OPENAI_API_KEY`: OpenAI API key used by Pydantic-AI.
 - `STATEMENT_AI_MODEL`: OpenAI model for statement extraction, defaulting to `gpt-5.4-mini`.
 
-Example seeded API calls:
-
-```bash
-curl "http://localhost:8000/api/v1/filters/options"
-curl "http://localhost:8000/api/v1/dashboard/metrics?start_date=2026-06-01&end_date=2026-06-30"
-curl "http://localhost:8000/api/v1/dashboard/charts/distribution?type=EXPENSE&start_date=2026-06-01&end_date=2026-06-30"
-curl "http://localhost:8000/api/v1/savings-goal"
-```
 
 ## Local Backend Checks
 
