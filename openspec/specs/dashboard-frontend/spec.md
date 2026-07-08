@@ -138,11 +138,12 @@ The system SHALL include frontend verification commands for linting, testing, an
 - **THEN** each command completes successfully for the dashboard MVP
 
 ### Requirement: Dashboard savings progress bar
-The system SHALL display a savings progress bar directly below the top metrics header row. The component SHALL display a "SAVINGS GOALS" header, an EDIT action, current accumulated savings on the left, target savings on the right, goal start date below the left bound, goal target date below the right bound, and a horizontal progress track with a dynamic percentage label. The progress track SHALL be visually narrow relative to the widget height, similar to a video progress bar, and SHALL include a circular marker at the current progress point with the percentage label positioned directly above the marker. Displayed savings goal money amounts SHALL use visible thousands separators consistent with other dashboard currency values.
+The system SHALL display a compact savings progress bar directly below the top metrics header row. The configured-state component SHALL minimize its vertical footprint to preserve additional chart area below while retaining readable internal padding. The component SHALL display a "SAVINGS GOALS" header, an EDIT action, current accumulated savings on the left, target savings on the right, goal start date below the left bound, goal target date below the right bound, and a horizontal progress track with a dynamic percentage label. The progress track SHALL be visually narrow relative to the widget height, similar to a video progress bar, and SHALL include a circular marker at the current progress point with the percentage label positioned directly above the marker. Displayed savings goal money amounts SHALL use visible thousands separators consistent with other dashboard currency values.
 
 #### Scenario: Savings progress bar renders configured goal
 - **WHEN** `/api/v1/savings-goal` returns a configured savings goal with progress 200.00 and target amount 1000.00
 - **THEN** the dashboard displays the savings progress bar immediately below the metrics header row
+- **AND** the configured savings goal component uses compact vertical spacing that leaves more room for the chart grid below it than the previous full-height layout
 - **AND** the dashboard displays the current accumulated savings amount on the left bound using visible currency thousands separators when applicable
 - **AND** the dashboard displays the target savings amount on the right bound using visible currency thousands separators when applicable
 - **AND** the dashboard displays the goal `start_date` below the left bound

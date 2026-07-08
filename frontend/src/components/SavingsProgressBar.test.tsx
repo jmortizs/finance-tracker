@@ -25,7 +25,7 @@ function buildGoal(
 
 describe("SavingsProgressBar", () => {
   it("renders progress bar with amounts, dates, and positive percentage", () => {
-    render(
+    const { container } = render(
       <SavingsProgressBar
         goal={buildGoal({ progress: 9635786.49, targetAmount: 15000000, completionPercentage: 64.2 })}
         onSave={vi.fn()}
@@ -38,6 +38,17 @@ describe("SavingsProgressBar", () => {
     expect(screen.getByText("64.2%")).toBeInTheDocument();
     expect(screen.getByText("2026-01-01")).toBeInTheDocument();
     expect(screen.getByText("2026-12-31")).toBeInTheDocument();
+    expect(container.querySelector("section")).toHaveAttribute("data-layout", "compact");
+  });
+
+  it("uses compact spacing for the configured layout", () => {
+    const { container } = render(<SavingsProgressBar goal={buildGoal()} onSave={vi.fn()} />);
+
+    expect(container.querySelector("section")).toHaveClass("px-3", "py-2");
+    expect(screen.getByText("$200.00")).toHaveClass("text-base");
+    expect(screen.getByText("$1,000.00")).toHaveClass("text-base");
+    expect(screen.getByText("20.0%")).toHaveClass("text-xs", "mb-1");
+    expect(container.querySelector(".min-h-\\[2rem\\]")).toBeInTheDocument();
   });
 
   it("renders zero progress state", () => {
@@ -87,6 +98,7 @@ describe("SavingsProgressBar", () => {
     render(<SavingsProgressBar goal={buildGoal()} onSave={onSave} />);
 
     await user.click(screen.getByRole("button", { name: "Edit" }));
+    expect(document.querySelector("section")).toHaveAttribute("data-layout", "form");
     await user.clear(screen.getByLabelText("Target amount"));
     await user.type(screen.getByLabelText("Target amount"), "3000");
     await user.clear(screen.getByLabelText("Start date"));
