@@ -24,6 +24,7 @@ function renderSidebar(onRefresh = vi.fn()) {
       onChange={vi.fn()}
       onReset={vi.fn()}
       onRefresh={onRefresh}
+      onOpenCreditCards={vi.fn()}
     />
   );
 }

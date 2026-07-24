@@ -1,4 +1,5 @@
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { vi } from "vitest";
 
 import { App } from "./App";
@@ -13,6 +14,12 @@ vi.mock("./components/charts/CashFlowChart", () => ({
 
 vi.mock("./components/charts/DistributionChart", () => ({
   DistributionChart: () => <div>Distribution chart</div>
+}));
+
+vi.mock("./components/CreditCardDashboard", () => ({
+  CreditCardDashboard: ({ onBack }: { onBack: () => void }) => (
+    <button onClick={onBack} type="button">Credit cards view</button>
+  )
 }));
 
 vi.mock("./hooks/useDashboard", () => ({
@@ -83,5 +90,14 @@ describe("App", () => {
     expect(screen.getAllByText("$10,995.86").length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText("2026-01-01").length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText("2026-12-31").length).toBeGreaterThanOrEqual(1);
+  });
+
+  it("switches to the independent credit-card page", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(screen.getByRole("button", { name: "Credit cards" }));
+
+    expect(screen.getByRole("button", { name: "Credit cards view" })).toBeInTheDocument();
   });
 });

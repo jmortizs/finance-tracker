@@ -25,6 +25,12 @@ class TransactionType(str, enum.Enum):
     EXPENSE = "EXPENSE"
 
 
+class CreditCardItemKind(str, enum.Enum):
+    PURCHASE = "purchase"
+    PAYMENT = "payment"
+    INTEREST = "interest"
+
+
 class Bank(Base):
     __tablename__ = "banks"
 
@@ -131,3 +137,73 @@ class SavingsGoal(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.current_timestamp()
     )
+
+
+class CreditCard(Base):
+    __tablename__ = "credit_cards"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    issuer: Mapped[str] = mapped_column(String(100), nullable=False)
+    account_number: Mapped[str] = mapped_column(String(50), nullable=False, unique=True)
+    name: Mapped[str] = mapped_column(String(100), nullable=False)
+    currency: Mapped[str] = mapped_column(String(3), nullable=False, default="COP")
+    credit_limit: Mapped[Decimal] = mapped_column(Numeric(15, 2), nullable=False, default=0)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.current_timestamp()
+    )
+
+    statements: Mapped[list[CreditCardStatement]] = relationship(
+        back_populates="credit_card", cascade="all, delete-orphan", passive_deletes=True
+    )
+
+
+class CreditCardStatement(Base):
+    __tablename__ = "credit_card_statements"
+    __table_args__ = (UniqueConstraint("file_hash", name="uq_credit_card_statements_file_hash"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    credit_card_id: Mapped[int] = mapped_column(
+        ForeignKey("credit_cards.id", ondelete="CASCADE"), nullable=False
+    )
+    file_hash: Mapped[str] = mapped_column(String(128), nullable=False, unique=True)
+    file_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    statement_date: Mapped[date] = mapped_column(Date, nullable=False)
+    current_balance: Mapped[Decimal] = mapped_column(Numeric(15, 2), nullable=False)
+    annual_percentage_rate: Mapped[Decimal | None] = mapped_column(Numeric(7, 4), nullable=True)
+    credit_limit: Mapped[Decimal] = mapped_column(Numeric(15, 2), nullable=False, default=0)
+    upload_date: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.current_timestamp()
+    )
+
+    credit_card: Mapped[CreditCard] = relationship(back_populates="statements")
+    items: Mapped[list[CreditCardStatementItem]] = relationship(
+        back_populates="statement", cascade="all, delete-orphan", passive_deletes=True
+    )
+
+
+class CreditCardStatementItem(Base):
+    __tablename__ = "credit_card_statement_items"
+    __table_args__ = (
+        Index("idx_credit_card_statement_items_date", "transaction_date"),
+        Index("idx_credit_card_statement_items_statement", "statement_id"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    statement_id: Mapped[int] = mapped_column(
+        ForeignKey("credit_card_statements.id", ondelete="CASCADE"), nullable=False
+    )
+    transaction_date: Mapped[date] = mapped_column(Date, nullable=False)
+    description: Mapped[str] = mapped_column(String(255), nullable=False)
+    category: Mapped[str] = mapped_column(String(32), nullable=False)
+    kind: Mapped[CreditCardItemKind] = mapped_column(
+        Enum(CreditCardItemKind, name="credit_card_item_kind", native_enum=True), nullable=False
+    )
+    amount: Mapped[Decimal] = mapped_column(Numeric(15, 2), nullable=False)
+    installment_number: Mapped[int | None] = mapped_column(nullable=True)
+    installment_total: Mapped[int | None] = mapped_column(nullable=True)
+    remaining_amount: Mapped[Decimal | None] = mapped_column(Numeric(15, 2), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.current_timestamp()
+    )
+
+    statement: Mapped[CreditCardStatement] = relationship(back_populates="items")

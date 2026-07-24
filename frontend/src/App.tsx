@@ -1,3 +1,6 @@
+import { useState } from "react";
+
+import { CreditCardDashboard } from "./components/CreditCardDashboard";
 import { FilterSidebar } from "./components/FilterSidebar";
 import { MetricCard } from "./components/MetricCard";
 import { ChartPanel } from "./components/PanelState";
@@ -8,8 +11,13 @@ import { DistributionChart } from "./components/charts/DistributionChart";
 import { useDashboard } from "./hooks/useDashboard";
 
 export function App() {
+  const [view, setView] = useState<"dashboard" | "credit-cards">("dashboard");
   const dashboard = useDashboard();
   const metricsLoading = dashboard.metrics.status === "loading" || dashboard.metrics.status === "idle";
+
+  if (view === "credit-cards") {
+    return <CreditCardDashboard onBack={() => setView("dashboard")} />;
+  }
 
   return (
     <div className="min-h-screen bg-canvas text-ink lg:h-dvh lg:min-h-0 lg:overflow-hidden">
@@ -21,6 +29,7 @@ export function App() {
           onChange={dashboard.setFilters}
           onReset={dashboard.resetFilters}
           onRefresh={dashboard.refresh}
+          onOpenCreditCards={() => setView("credit-cards")}
         />
 
         <main className="grid min-w-0 flex-1 grid-rows-[auto_auto_minmax(0,1fr)] gap-px bg-grid p-px lg:h-full lg:overflow-hidden">

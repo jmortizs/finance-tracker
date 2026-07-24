@@ -71,6 +71,11 @@ All dashboard endpoints are mounted under `/api/v1`:
 - `GET /api/v1/savings-goal`
 - `PUT /api/v1/savings-goal`
 - `POST /api/v1/statements/upload`
+- `POST /api/v1/credit-cards/statements/upload`
+- `GET /api/v1/credit-cards/metrics`
+- `GET /api/v1/credit-cards/monthly-activity`
+- `GET /api/v1/credit-cards/category-distribution`
+- `GET /api/v1/credit-cards/statement-items`
 
 `GET /api/v1/filters/options` returns banks, accounts, and nullable
 `min_transaction_date` / `max_transaction_date` bounds for dashboard date defaults.
@@ -79,6 +84,14 @@ The savings goal endpoint is filter-isolated: progress is calculated from income
 The main dashboard includes an inline-editable savings goal card for `target_amount`, `start_date`, and `end_date`.
 Bank statement ingestion accepts one PDF at `/api/v1/statements/upload`, rejects duplicate files by SHA-256 hash, extracts layout-preserved text deterministically with `pdfplumber` before parsing it with Pydantic-AI/OpenAI, validates statement arithmetic, defaults currency to `COP` unless specified, and skips duplicate issuer transactions by `account_id`, `bank_id`, and `transaction_date`.
 Corrupted or unparseable PDFs are rejected with HTTP 400, and image-only (scanned) PDFs with no extractable text are rejected with HTTP 422 before any AI call.
+
+Credit-card statement ingestion is independent from bank statements and cash dashboard
+analytics. It first extracts layout-preserved embedded text and runs local Tesseract OCR
+only for PDF pages without text, then uses the configured OpenAI model to return strict
+card metadata and statement items. The Credit Cards page is available from the dashboard
+sidebar and shows card-balance metrics, monthly activity, purchase categories, and
+installment details. The backend Docker image installs Tesseract automatically; host
+execution of scanned statement ingestion requires the `tesseract` executable on `PATH`.
 
 ## AI Statement Ingestion Configuration
 

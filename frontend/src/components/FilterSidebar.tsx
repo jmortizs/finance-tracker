@@ -17,6 +17,7 @@ interface FilterSidebarProps {
   onChange: (filters: Partial<DashboardFilters>) => void;
   onReset: () => void;
   onRefresh: () => void;
+  onOpenCreditCards: () => void;
 }
 
 function parseSelectNumber(value: string): number | null {
@@ -29,7 +30,8 @@ export function FilterSidebar({
   availableAccounts,
   onChange,
   onReset,
-  onRefresh
+  onRefresh,
+  onOpenCreditCards
 }: FilterSidebarProps) {
   const banks = options.data?.banks ?? [];
   const [uploadStatus, setUploadStatus] = useState<"idle" | "uploading" | "success" | "error">(
@@ -72,6 +74,9 @@ export function FilterSidebar({
       <div className="border-b border-grid px-5 py-5">
         <p className="text-xs uppercase text-muted">Personal Finance</p>
         <h1 className="mt-2 text-xl font-bold uppercase text-ink">Dashboard</h1>
+        <button className="mt-3 border border-grid px-2 py-1 text-xs font-bold uppercase text-muted-strong hover:border-accent hover:text-accent" onClick={onOpenCreditCards} type="button">
+          Credit cards
+        </button>
       </div>
 
       <div className="space-y-5 px-5 py-5">
